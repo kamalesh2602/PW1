@@ -18,7 +18,6 @@ raw_cors = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:517
 origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
 
 from fastapi.middleware.cors import CORSMiddleware
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
