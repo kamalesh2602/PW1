@@ -37,4 +37,4 @@ class CodeExecutionService:
                 execution_time=0.0
             )
 
-        return executor.execute(request.code)
+        return executor.execute(request.code, request.stdin or "")

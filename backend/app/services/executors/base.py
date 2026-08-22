@@ -53,7 +53,7 @@ class BaseExecutor(abc.ABC):
         """
         pass
 
-    def execute(self, code: str) -> ExecutionResponse:
+    def execute(self, code: str, stdin: str = "") -> ExecutionResponse:
         """
         Main entry point for executing submitted code.
         """
@@ -70,6 +70,11 @@ class BaseExecutor(abc.ABC):
         with tempfile.TemporaryDirectory(prefix="debugger_sandbox_") as temp_dir:
             filename = self.prepare_files(temp_dir, code)
 
+            # Write stdin to input.txt in temp_dir
+            input_file_path = os.path.join(temp_dir, "input.txt")
+            with open(input_file_path, "w", encoding="utf-8") as f:
+                f.write(stdin or "")
+
             # Check if Docker client is available
             client = self.docker_client
             if client is not None:
@@ -82,7 +87,8 @@ class BaseExecutor(abc.ABC):
         """
         Executes code inside a sandboxed Docker container.
         """
-        cmd = self.build_execution_command(filename)
+        base_cmd = self.build_execution_command(filename)
+        cmd = f"{base_cmd} < input.txt"
         start_time = time.time()
 
         # Mount directory as read-only or read-write into container /sandbox
@@ -178,9 +184,11 @@ class BaseExecutor(abc.ABC):
         Fallback execution path when Docker daemon is not running on host.
         Performs controlled local process execution and logs notice.
         """
-        cmd = self.build_execution_command(filename)
-        if sys.platform == "win32" and cmd.startswith("python3"):
-            cmd = f'"{sys.executable}"{cmd[7:]}'
+        base_cmd = self.build_execution_command(filename)
+        if sys.platform == "win32" and base_cmd.startswith("python3"):
+            base_cmd = f'"{sys.executable}"{base_cmd[7:]}'
+
+        cmd = f"{base_cmd} < input.txt"
 
         start_time = time.time()
 
@@ -235,7 +243,7 @@ class BaseExecutor(abc.ABC):
 
         stderr_lower = stderr.lower()
         if self.get_language() == ExecutionLanguage.JAVA:
-            if "error:" in stderr_lower or "main.java:" in stderr_lower or "compilation failed" in stderr_lower:
+            if "error:" in stderr_lower or ".java:" in stderr_lower or "compilation failed" in stderr_lower:
                 return ExecutionStatus.COMPILE_ERROR
 
         return ExecutionStatus.RUNTIME_ERROR

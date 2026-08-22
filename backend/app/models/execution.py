@@ -19,6 +19,7 @@ class ExecutionStatus(str, Enum):
 class ExecutionRequest(BaseModel):
     language: ExecutionLanguage = Field(..., description="Target language for execution ('python' or 'java')")
     code: str = Field(..., description="Source code to be executed")
+    stdin: Optional[str] = Field(default="", description="Standard input data passed to program")
 
 
 class ExecutionResponse(BaseModel):

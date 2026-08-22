@@ -4,6 +4,7 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { FileUploadButton } from './components/FileUploadButton';
 import { RunButton } from './components/RunButton';
 import { CodeEditor } from './components/CodeEditor';
+import { InputPanel } from './components/InputPanel';
 import { OutputPanel } from './components/OutputPanel';
 import { executeCode } from './services/api';
 
@@ -22,6 +23,7 @@ main()`,
 export default function App() {
   const [language, setLanguage] = useState('python');
   const [code, setCode] = useState(STARTER_CODE.python);
+  const [stdin, setStdin] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState(null);
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +53,7 @@ export default function App() {
   const handleRunCode = async () => {
     setIsLoading(true);
     try {
-      const response = await executeCode(language, code);
+      const response = await executeCode(language, code, stdin);
       setResult(response);
     } catch (err) {
       setResult({
@@ -97,8 +99,17 @@ export default function App() {
               onFileUpload={handleFileUpload}
             />
           </div>
-          <div className="grid-cell output-cell">
-            <OutputPanel result={result} isLoading={isLoading} />
+          <div className="right-panel-column">
+            <div className="grid-cell input-cell">
+              <InputPanel
+                stdin={stdin}
+                onChange={setStdin}
+                disabled={isLoading}
+              />
+            </div>
+            <div className="grid-cell output-cell">
+              <OutputPanel result={result} isLoading={isLoading} />
+            </div>
           </div>
         </div>
       </main>

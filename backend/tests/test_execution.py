@@ -66,6 +66,49 @@ def test_java_successful_execution():
     assert data["exit_code"] == 0
 
 
+def test_java_custom_class_name_execution():
+    payload = {
+        "language": "java",
+        "code": "public class BinarySearch { public static void main(String[] args) { System.out.println(\"BinarySearch Result: 42\"); } }"
+    }
+    response = client.post("/execute", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["language"] == "java"
+    assert "BinarySearch Result: 42" in data["stdout"]
+    assert data["exit_code"] == 0
+
+
+def test_java_packaged_class_execution():
+    payload = {
+        "language": "java",
+        "code": "package arrays;\npublic class BinarySearch { public static void main(String[] args) { System.out.println(\"Packaged BinarySearch: OK\"); } }"
+    }
+    response = client.post("/execute", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["language"] == "java"
+    assert "Packaged BinarySearch: OK" in data["stdout"]
+    assert data["exit_code"] == 0
+
+
+def test_java_stdin_scanner_execution():
+    payload = {
+        "language": "java",
+        "code": "package arrays;\nimport java.util.Scanner;\npublic class BubbleSort { public static void main(String[] args) { Scanner sc = new Scanner(System.in); int n = sc.nextInt(); System.out.println(\"Read n: \" + n); } }",
+        "stdin": "42\n"
+    }
+    response = client.post("/execute", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["language"] == "java"
+    assert "Read n: 42" in data["stdout"]
+    assert data["exit_code"] == 0
+
+
 def test_java_compilation_error():
     payload = {
         "language": "java",

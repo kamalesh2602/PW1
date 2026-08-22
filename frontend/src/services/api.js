@@ -10,11 +10,12 @@ const apiClient = axios.create({
   timeout: 15000, // 15 seconds network timeout
 });
 
-export const executeCode = async (language, code) => {
+export const executeCode = async (language, code, stdin = '') => {
   try {
     const response = await apiClient.post('/execute', {
       language,
       code,
+      stdin,
     });
     return response.data;
   } catch (error) {

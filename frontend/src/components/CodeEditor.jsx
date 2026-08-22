@@ -62,6 +62,20 @@ export const CodeEditor = ({
     reader.readAsText(file);
   };
 
+  const getDisplayFilename = () => {
+    if (uploadedFileName) return uploadedFileName;
+    if (language === 'python') return 'script.py';
+
+    if (language === 'java' && code) {
+      const cleanCode = code.replace(/\/\/.*?\n|\/\*.*?\*\//gs, '');
+      const match = cleanCode.match(/\bpublic\s+(?:final\s+)?class\s+([A-Za-z_][A-Za-z0-9_]*)/) || cleanCode.match(/\bclass\s+([A-Za-z_][A-Za-z0-9_]*)/);
+      if (match && match[1]) {
+        return `${match[1]}.java`;
+      }
+    }
+    return 'Main.java';
+  };
+
   return (
     <div
       className={`editor-container ${isDragging ? 'dragging' : ''}`}
@@ -73,7 +87,7 @@ export const CodeEditor = ({
         <div className="editor-title-group">
           <FileCode size={16} className="editor-icon" />
           <span className="editor-filename">
-            {uploadedFileName || (language === 'python' ? 'script.py' : 'Main.java')}
+            {getDisplayFilename()}
           </span>
           {uploadedFileName && (
             <span className="uploaded-badge">uploaded</span>
