@@ -80,7 +80,6 @@ class BaseExecutor(abc.ABC):
             if client is not None:
                 return self._execute_in_docker(client, temp_dir, filename)
             else:
-                # Docker is not running or available - perform fallback local execution
                 return self._execute_fallback(temp_dir, filename)
 
     def _execute_in_docker(self, client: docker.DockerClient, temp_dir: str, filename: str) -> ExecutionResponse:
