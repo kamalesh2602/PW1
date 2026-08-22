@@ -42,7 +42,7 @@ export const executeCode = async (language, code, stdin = '') => {
         status: 'execution_error',
         language,
         stdout: '',
-        stderr: 'Unable to connect to backend execution service (http://localhost:8000). Please ensure the FastAPI backend is running.',
+        stderr: `Unable to connect to backend execution service (${API_URL}). Please ensure the FastAPI backend is running.`,
         exit_code: 1,
         execution_time: 0,
       };
