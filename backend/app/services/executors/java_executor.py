@@ -23,9 +23,11 @@ class JavaExecutor(BaseExecutor):
         self,
         image_name: str = "runtime-debugger-java",
         timeout: float = 5.0,
+        compile_timeout: float = 15.0,
     ):
         super().__init__(image_name=image_name, timeout=timeout)
-
+        self.compile_timeout = compile_timeout
+    
     def get_language(self) -> ExecutionLanguage:
         return ExecutionLanguage.JAVA
 
