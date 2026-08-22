@@ -14,10 +14,7 @@ export const Header = () => {
             <p className="header-subtitle">Secure code execution for Python and Java</p>
           </div>
         </div>
-        <div className="header-badge">
-          <Shield size={14} />
-          <span>Docker Sandbox Environment</span>
-        </div>
+        
       </div>
     </header>
   );
