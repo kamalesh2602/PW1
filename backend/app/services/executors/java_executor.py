@@ -140,7 +140,7 @@ class JavaExecutor(BaseExecutor):
                     cwd=temp_dir,
                     capture_output=True,
                     text=True,
-                    timeout=self.timeout,
+                    timeout=self.compile_timeout
                 )
 
             except FileNotFoundError:
