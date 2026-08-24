@@ -1,4 +1,5 @@
 import os
+from uuid import uuid4
 from typing import Dict
 from dotenv import load_dotenv
 
@@ -6,6 +7,8 @@ from app.models.execution import ExecutionLanguage, ExecutionRequest, ExecutionR
 from app.services.executors.base import BaseExecutor
 from app.services.executors.python_executor import PythonExecutor
 from app.services.executors.java_executor import JavaExecutor
+from app.services.tracing import TraceBuilder
+from app.routes.traces import store
 
 load_dotenv()
 
@@ -24,6 +27,7 @@ class CodeExecutionService:
             ExecutionLanguage.PYTHON: PythonExecutor(image_name=python_image, timeout=timeout),
             ExecutionLanguage.JAVA: JavaExecutor(image_name=java_image, timeout=timeout),
         }
+        self.trace_builder = TraceBuilder()
 
     def execute_code(self, request: ExecutionRequest) -> ExecutionResponse:
         executor = self.executors.get(request.language)
@@ -37,4 +41,9 @@ class CodeExecutionService:
                 execution_time=0.0
             )
 
-        return executor.execute(request.code, request.stdin or "")
+        response = executor.execute(request.code, request.stdin or "")
+        execution_id = str(uuid4())
+        response.execution_id = execution_id
+        trace = self.trace_builder.build(execution_id, request.language.value, request.code, response)
+        store.save_execution(trace)
+        return response

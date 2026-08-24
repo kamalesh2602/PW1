@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from app.routes.execution import router as execution_router
+from app.routes.traces import router as traces_router
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ app.add_middleware(
 
 # Include execution routes
 app.include_router(execution_router)
+app.include_router(traces_router)
 
 
 @app.get("/health", tags=["health"])

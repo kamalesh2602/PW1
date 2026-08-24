@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
@@ -29,3 +29,7 @@ class ExecutionResponse(BaseModel):
     stderr: str = ""
     exit_code: Optional[int] = None
     execution_time: float = 0.0
+    # Kept deliberately separate from the API response.  The service uses this
+    # transient field to persist a trace, while Pydantic excludes it from JSON.
+    execution_id: Optional[str] = None
+    trace_artifact: Optional[dict[str, Any]] = Field(default=None, exclude=True)

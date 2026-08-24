@@ -53,6 +53,20 @@ class BaseExecutor(abc.ABC):
         """
         pass
 
+    def load_trace_artifact(self, temp_dir: str) -> dict | None:
+        """Language tracers may write this bounded artifact inside the sandbox."""
+        trace_file = os.path.join(temp_dir, ".runtime_trace.json")
+        try:
+            import json
+            with open(trace_file, encoding="utf-8") as handle:
+                return json.load(handle)
+        except (OSError, ValueError):
+            return None
+
+    def _attach_trace(self, response: ExecutionResponse, temp_dir: str) -> ExecutionResponse:
+        response.trace_artifact = self.load_trace_artifact(temp_dir)
+        return response
+
     def execute(self, code: str, stdin: str = "") -> ExecutionResponse:
         """
         Main entry point for executing submitted code.
@@ -78,9 +92,9 @@ class BaseExecutor(abc.ABC):
             # Check if Docker client is available
             client = self.docker_client
             if client is not None:
-                return self._execute_in_docker(client, temp_dir, filename)
+                return self._attach_trace(self._execute_in_docker(client, temp_dir, filename), temp_dir)
             else:
-                return self._execute_fallback(temp_dir, filename)
+                return self._attach_trace(self._execute_fallback(temp_dir, filename), temp_dir)
 
     def _execute_in_docker(self, client: docker.DockerClient, temp_dir: str, filename: str) -> ExecutionResponse:
         """

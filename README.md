@@ -266,8 +266,25 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
-## 11. Future Direction (Modules 2+)
-Module 1 forms the foundational component for upcoming modules:
-- **Module 2**: Runtime Execution Tracing (capturing AST call paths, variable mutations, and call stack frames).
-- **Module 3**: Model Context Protocol (MCP) server implementation for dynamic context serving.
-- **Module 4**: Agentic debugging integration with LLMs.
+## 11. Runtime tracing and trace queries (Modules 2 & 3)
+
+Every `POST /execute` response now includes an `execution_id`. The response intentionally does **not** include the potentially large trace. Instead, the trace is held by a replaceable, thread-safe in-memory store and can be queried selectively.
+
+```text
+Code -> Executor -> Tracer -> Trace Store -> Query Service -> Future MCP -> Future Debugging Agent
+```
+
+Python execution uses a bounded `sys.settrace()` runner in the sandbox. It records program boundaries, function calls/returns, executed lines, exceptions, safe local-variable snapshots, and stack frames. Values are restricted to small, JSON-safe representations. Java uses the same language-independent event schema and produces useful MVP program, method, compilation-diagnostic, and runtime-exception events from JVM output/source metadata; it deliberately does not expose JVM internals.
+
+The common event fields are event ID, type, language, source file/line, function, relative timestamp, stack, safe variables, and optional exception. Collection is bounded (2,000 events per execution); truncation is retained as metadata.
+
+Available REST queries:
+
+- `GET /executions/{id}` — execution metadata only
+- `GET /executions/{id}/error`, `/stack`, `/frames/{frame_id}/variables`
+- `GET /executions/{id}/source?file=script.py&line=10&radius=3`
+- `GET /executions/{id}/path?max_events=100`
+- `GET /executions/{id}/events/{event_id}`
+- `POST /executions/{id}/search` — accepts `event_type`, `function`, `variable`, `exception_type`, `file`, `line_start`, `line_end`, and `max_results`
+
+This selective-query design avoids providing a full source file or full runtime trace unless a caller explicitly requests a narrow source region or a bounded path. **MCP and AI agents are not implemented yet.**
