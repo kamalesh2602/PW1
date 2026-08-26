@@ -5,7 +5,7 @@
 ---
 
 ## 1. Project Overview
-This repository contains **Module 1** of a larger software engineering research project. The ultimate objective of the research is to build an AI-assisted debugging system that dynamically retrieves runtime state information using the Model Context Protocol (MCP) instead of sending full source files and raw execution traces to an LLM.
+This repository contains Modules 1â€“4 of a larger software engineering research project. The ultimate objective is to build an AI-assisted debugging system that dynamically retrieves runtime state information using the Model Context Protocol (MCP) instead of sending full source files and raw execution traces to an LLM.
 
 **Module 1** provides the foundational **secure code execution engine**, allowing users to write, execute, and inspect Python and Java 17 programs securely inside isolated Docker containers.
 
@@ -287,4 +287,68 @@ Available REST queries:
 - `GET /executions/{id}/events/{event_id}`
 - `POST /executions/{id}/search` — accepts `event_type`, `function`, `variable`, `exception_type`, `file`, `line_start`, `line_end`, and `max_results`
 
-This selective-query design avoids providing a full source file or full runtime trace unless a caller explicitly requests a narrow source region or a bounded path. **MCP and AI agents are not implemented yet.**
+This selective-query design avoids providing a full source file or full runtime trace unless a caller explicitly requests a narrow source region or a bounded path.
+
+---
+
+## 12. MCP debugging server (Module 4)
+
+MCP is a local, standard tool interface for a future debugging agent. It exposes the same read-only `TraceQueryService` used by RESTâ€”it does not execute code, access the filesystem, or create a second trace store.
+
+```text
+Tracer
+  â†“
+Trace Store
+  â†“
+Trace Query Service
+  â†“
+MCP
+  â†“
+Future Agent
+```
+
+Available tools are `get_error_context`, `get_stack_trace`, `get_frame_variables`, `get_source_context`, `get_execution_path`, `get_event`, and `search_trace`. They return targeted, bounded context; in particular source requests return a specified line range and execution-path/search results are capped.
+
+For the current in-memory trace store, start the FastAPI process so MCP and `/execute`
+share the same trace data:
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+The MCP Streamable HTTP endpoint is `http://localhost:8000/mcp`. The standalone
+`python -m app.mcp.server` command remains useful for stdio-client development,
+but it has a separate in-memory store and therefore cannot query executions made
+by a separately running FastAPI process.
+
+### Quick MCP Inspector check
+
+With the backend still running, open a second terminal from the project root and run:
+
+```bash
+cd backend
+npx @modelcontextprotocol/inspector --server-url http://localhost:8000/mcp --transport http
+```
+
+In the Inspector browser page, select the server and click **Connect**, then open
+**Tools** to confirm the seven debugging tools are discovered. First use
+`POST /execute` in `http://localhost:8000/docs` to run code and copy the returned
+`execution_id`. Paste that ID into a tool call such as `get_error_context` or
+`get_stack_trace`. Do not open `/mcp` directly in a browser: the MCP client manages
+the required protocol session automatically.
+
+For a manual test, first submit the following to `POST /execute` and retain its `execution_id`:
+
+```python
+def divide(a, b):
+    return a / b
+
+def process():
+    return divide(10, 0)
+
+process()
+```
+
+Connect an MCP client over stdio, discover the listed tools, then call `get_error_context`, `get_stack_trace`, `get_frame_variables` with the failing frame ID, and `get_source_context` with `script.py`, line `2`, and a small radius. `get_execution_path`, `get_event`, and `search_trace` provide further selective inspection. Each call records structured telemetry (tool, execution ID, duration, result size, success, and event count) through the backend logger.
+
+**The debugging agent and automatic repair are NOT implemented yet.** Module 4 only makes runtime context available to a future agent without returning the complete trace by default.
