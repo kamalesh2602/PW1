@@ -1,0 +1,13 @@
+{
+  "language": "python",
+  "code": "def divide(a, b):\n    result = a / b\n    return result\n\ndef process():\n    return divide(10, 0)\n\nprocess()",
+  "stdin": ""
+}
+
+
+
+{
+  "language": "java",
+  "code": "public class Main { public static void main(String[] args) { System.out.println(\"Missing Semicolon\") } }",
+  "stdin": ""
+}
