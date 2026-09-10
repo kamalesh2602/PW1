@@ -1,9 +1,8 @@
 from typing import Optional
 from fastapi import APIRouter, Query
 from app.services.trace_query_service import TraceQueryService
-from app.services.trace_store.memory_store import InMemoryTraceStore
+from app.services.trace_store.store import store
 
-store = InMemoryTraceStore()
 queries = TraceQueryService(store)
 router = APIRouter(prefix="/executions", tags=["traces"])
 
