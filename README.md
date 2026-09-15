@@ -116,7 +116,6 @@ PythonExecutor        JavaExecutor
 - **Containerization**: Docker Engine
 - **Languages**: Python 3.11, OpenJDK/Eclipse-Temurin 17
 
----
 
 ## 5. Why Docker is Used
 Executing untrusted user-submitted code directly on the host operating system poses serious security risks (file system corruption, unauthorized host resource access, malicious network calls). 

@@ -48,3 +48,31 @@ class DebugDiagnosis(BaseModel):
     suggested_fix: str = Field(
         description="Practical code-level fix for the identified bug."
     )
+class FixRequest(BaseModel):
+    """
+    Input given to the automatic fixing agent.
+    """
+
+    execution_id: str
+
+    max_attempts: int = 3
+
+
+class FixResult(BaseModel):
+    """
+    Result produced by the automatic bug-fixing workflow.
+    """
+
+    execution_id: str
+
+    original_diagnosis: DebugDiagnosis
+
+    fixed_code: str | None = None
+
+    success: bool = False
+
+    attempts: int = 0
+
+    final_execution_id: str | None = None
+
+    final_error: dict[str, Any] | None = None

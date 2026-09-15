@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from app.routes.execution import router as execution_router
 from app.routes.traces import router as traces_router
 from app.routes.debug import router as debug_router
+from app.routes.fix import router as fix_router
 from app.mcp.server import mcp
 
 load_dotenv()
@@ -48,6 +49,7 @@ app.add_middleware(
 app.include_router(execution_router)
 app.include_router(traces_router)
 app.include_router(debug_router)
+app.include_router(fix_router)
 
 
 @app.get("/health", tags=["health"])
@@ -57,3 +59,6 @@ async def health_check():
 # Mount after FastAPI's REST routes so it only handles the MCP protocol path.
 # It shares this process's in-memory Trace Store with the execution routes.
 app.mount("", mcp_app)
+
+# Module 6 automatic bug fixer route loaded
+
