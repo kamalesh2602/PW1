@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from app.routes.execution import router as execution_router
 from app.routes.traces import router as traces_router
+from app.routes.debug import router as debug_router
 from app.mcp.server import mcp
 
 load_dotenv()
@@ -46,6 +47,7 @@ app.add_middleware(
 # Include execution routes
 app.include_router(execution_router)
 app.include_router(traces_router)
+app.include_router(debug_router)
 
 
 @app.get("/health", tags=["health"])

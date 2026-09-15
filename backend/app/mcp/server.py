@@ -7,9 +7,11 @@ from typing import Any
 from fastapi import HTTPException
 from mcp.server.mcpserver import MCPServer
 
-from app.routes.traces import queries
+from app.services.trace_query_service import TraceQueryService
+from app.services.trace_store.store import store
 from app.services.mcp_telemetry import record_tool_call
 
+queries = TraceQueryService(store)
 
 mcp = MCPServer(
     "runtime-debugging-server",

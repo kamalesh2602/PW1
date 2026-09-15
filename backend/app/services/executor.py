@@ -8,7 +8,7 @@ from app.services.executors.base import BaseExecutor
 from app.services.executors.python_executor import PythonExecutor
 from app.services.executors.java_executor import JavaExecutor
 from app.services.tracing import TraceBuilder
-from app.routes.traces import store
+from app.services.trace_store.store import store
 
 load_dotenv()
 
