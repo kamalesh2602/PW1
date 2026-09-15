@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.agent.fixer import FixerAgent
@@ -7,6 +8,7 @@ from app.models.execution import ExecutionRequest, ExecutionLanguage
 client = TestClient(app)
 
 
+@pytest.mark.asyncio
 async def test_fixer_agent_zerodivisionerror():
 
     executor = CodeExecutionService()

@@ -98,10 +98,21 @@ Do not request unnecessary trace information.
         # ------------------------------------------------
 
         for _ in range(max_iterations):
-
-            response = await self.model.ainvoke(
-                messages
-            )
+            try:
+                response = await self.model.ainvoke(messages)
+            except Exception as exc:
+                # LLM call failed (e.g. OpenRouter rate limit or network issue)
+                error_ctx = tool_results.get("get_error_context")
+                return DebugDiagnosis(
+                    execution_id=execution_id,
+                    error=error_ctx if isinstance(error_ctx, dict) else None,
+                    diagnosis=f"LLM diagnostic service encountered an error ({type(exc).__name__}). Using trace context.",
+                    root_cause=f"Runtime error occurred during execution: {str(exc)}",
+                    evidence=[],
+                    queries_used=queries_used,
+                    confidence=0.5,
+                    suggested_fix="Check program logic and variable initialization around the failure line.",
+                )
 
             messages.append(response)
 

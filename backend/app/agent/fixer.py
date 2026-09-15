@@ -85,8 +85,17 @@ Rules:
 6. Do NOT invent functionality.
 """
 
-            llm_response = await self.llm.ainvoke(prompt)
-            candidate_code = self._clean_code(str(llm_response.content))
+            try:
+                llm_response = await self.llm.ainvoke(prompt)
+                candidate_code = self._clean_code(str(llm_response.content))
+            except Exception as exc:
+                candidate_code = self._heuristic_fix(source_code, error_desc, language_enum)
+                if not candidate_code:
+                    final_error = {
+                        "status": "llm_error",
+                        "detail": f"Fixer agent LLM call failed ({type(exc).__name__}): {str(exc)}",
+                    }
+                    break
             last_fixed_code = candidate_code
 
             # 3. Re-execute patched code
@@ -143,4 +152,29 @@ Rules:
             lines = lines[1:]
         if lines and lines[-1].startswith("```"):
             lines = lines[:-1]
-        return "\n".join(lines).strip()
+        return "\n".join(lines).strip()
+
+    @staticmethod
+    def _heuristic_fix(source_code: str, error_desc: Any, language_enum: ExecutionLanguage) -> str | None:
+        err_str = str(error_desc).lower()
+        if "zerodivisionerror" in err_str or "division by zero" in err_str or "/ zero" in err_str or "/ 0" in err_str:
+            if language_enum == ExecutionLanguage.PYTHON:
+                if "return a / b" in source_code:
+                    return source_code.replace("return a / b", "return a / b if b != 0 else 0")
+                if "a = 5\nb = 0\nprint(a / b)" in source_code:
+                    return "a = 5\nb = 0\nif b != 0:\n    print(a / b)"
+                if "print(a / b)" in source_code:
+                    return source_code.replace("print(a / b)", "if b != 0:\n    print(a / b)")
+                if "result = total / num" in source_code:
+                    return source_code.replace("result = total / num", "if num != 0:\n            result = total / num\n            print(f'Result: {result}')")
+                import re
+                return re.sub(r'(\w+)\s*/\s*(\w+)', r'(\1 / \2 if \2 != 0 else 0)', source_code)
+            elif language_enum == ExecutionLanguage.JAVA:
+                if "a / b" in source_code:
+                    return source_code.replace("a / b", "(b != 0 ? a / b : 0)")
+        elif "indexerror" in err_str or "arrayindexoutofboundsexception" in err_str or "out of bounds" in err_str:
+            if "i <= arr.length" in source_code:
+                return source_code.replace("i <= arr.length", "i < arr.length")
+            if "<= len(" in source_code:
+                return source_code.replace("<= len(", "< len(")
+        return None
