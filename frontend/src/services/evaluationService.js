@@ -59,3 +59,9 @@ export async function getExperimentEvents(evaluationId) {
   const response = await apiClient.get(`/evaluation/experiments/${evaluationId}/events`);
   return response.data;
 }
+
+export async function clearEvaluationResults() {
+  const response = await apiClient.delete('/evaluation/results');
+  return response.data;
+}
+

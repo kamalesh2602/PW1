@@ -761,3 +761,218 @@ def test_inspect_normalized_paired_files(tmp_path):
     assert summary["metrics"]["token_reduction_percent"] == -40.0
 
 
+def test_clear_results_resets_csv_and_removes_artifacts(tmp_path):
+    """Verify that clear_results resets CSV to header and deletes generated per-experiment artifacts."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+    eval_id = "eval_clear_test_01"
+
+    rec = ExperimentRecord(
+        evaluation_id=eval_id,
+        experiment_id=f"{eval_id}_dynamic",
+        bug_id="B001",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=1200,
+        total_tokens=250,
+        token_usage_available=True,
+    )
+    logger.log_experiment(rec)
+    logger.log_event(
+        evaluation_id=eval_id,
+        experiment_id=f"{eval_id}_dynamic",
+        bug_id="B001",
+        mode="dynamic",
+        event="test_event",
+        step=1,
+        data={"info": "sample"},
+    )
+
+    # Pre-conditions
+    assert len(logger.get_experiments()) == 1
+    eval_dir = tmp_path / "experiments" / eval_id
+    assert eval_dir.exists()
+    assert (eval_dir / "dynamic.json").exists()
+    assert (tmp_path / "m8_events.jsonl").read_text(encoding="utf-8").strip() != ""
+
+    # Clear operation
+    result = logger.clear_results()
+    assert result["success"] is True
+    assert result["cleared_categories"]["csv_records"] is True
+    assert result["cleared_categories"]["event_logs"] is True
+    assert result["cleared_categories"]["experiment_directories"] == 1
+    assert result["errors"] is None
+
+    # Post-conditions:
+    # 1. Experiments list is empty
+    assert logger.get_experiments() == []
+    # 2. CSV still exists and contains schema header
+    assert logger.csv_path.exists()
+    lines = logger.csv_path.read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) == 1
+    assert "evaluation_id" in lines[0]
+    assert "bug_id" in lines[0]
+    # 3. Events journal is empty
+    assert logger.jsonl_path.read_text(encoding="utf-8") == ""
+    # 4. Artifact directory removed
+    assert not eval_dir.exists()
+    # 5. Experiments root directory still exists and is empty
+    assert logger.experiments_dir.exists()
+    assert list(logger.experiments_dir.iterdir()) == []
+
+
+def test_clear_results_preserves_benchmarks_and_unrelated_files(tmp_path):
+    """Verify that clear_results preserves benchmark definitions and unrelated files."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+
+    # Create an unrelated file
+    unrelated_file = tmp_path / "unrelated_user_data.txt"
+    unrelated_file.write_text("critical user content", encoding="utf-8")
+
+    benchmarks_before = get_all_benchmarks()
+    assert len(benchmarks_before) >= 10
+
+    # Execute clear
+    result = logger.clear_results()
+    assert result["success"] is True
+
+    # Benchmark definitions are unchanged
+    benchmarks_after = get_all_benchmarks()
+    assert len(benchmarks_after) == len(benchmarks_before)
+    assert get_benchmark("B001") is not None
+
+    # Unrelated files in data dir or elsewhere are preserved
+    assert unrelated_file.exists()
+    assert unrelated_file.read_text(encoding="utf-8") == "critical user content"
+
+
+def test_clear_results_handles_missing_files_gracefully(tmp_path):
+    """Verify that clearing handles missing CSV or missing directories without crashing."""
+    empty_dir = tmp_path / "non_existent_subdir"
+    logger = ExperimentLogger(data_dir=empty_dir)
+
+    # Intentionally remove files if created
+    if logger.csv_path.exists():
+        logger.csv_path.unlink()
+    if logger.jsonl_path.exists():
+        logger.jsonl_path.unlink()
+    if logger.experiments_dir.exists():
+        import shutil
+        shutil.rmtree(logger.experiments_dir)
+
+    result = logger.clear_results()
+    assert result["success"] is True
+    # Verify files and directories are safely recreated in valid state
+    assert logger.csv_path.exists()
+    assert logger.jsonl_path.exists()
+    assert logger.experiments_dir.exists()
+    assert logger.get_experiments() == []
+
+
+def test_clear_results_path_traversal_protection(tmp_path):
+    """Verify that clear_results detects and prevents paths outside allowed directory."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+    outside_dir = tmp_path.parent / "outside_allowed_dir"
+    outside_dir.mkdir(parents=True, exist_ok=True)
+    outside_file = outside_dir / "safe_file.txt"
+    outside_file.write_text("must not be deleted", encoding="utf-8")
+
+    # Manually configure a path pointing outside data_dir
+    logger.experiments_dir = outside_dir
+
+    result = logger.clear_results()
+    assert result["success"] is False
+    assert result["errors"] is not None
+    assert any("resolves outside allowed data directory" in err for err in result["errors"])
+    # Verify outside file was NOT deleted
+    assert outside_file.exists()
+
+
+def test_experiment_creation_works_normally_after_clear(tmp_path):
+    """Verify that after clearing, a subsequent experiment writes normally and is queryable."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+
+    # 1. Clear first
+    logger.clear_results()
+    assert logger.get_experiments() == []
+
+    # 2. Log subsequent experiment
+    new_eval_id = "eval_subsequent_01"
+    new_rec = ExperimentRecord(
+        evaluation_id=new_eval_id,
+        experiment_id=f"{new_eval_id}_dynamic",
+        bug_id="B002",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=1450,
+        total_tokens=320,
+        token_usage_available=True,
+    )
+    logger.log_experiment(new_rec)
+
+    # 3. Verify it was recorded properly
+    exps = logger.get_experiments()
+    assert len(exps) == 1
+    assert exps[0].evaluation_id == new_eval_id
+    assert exps[0].bug_id == "B002"
+
+    summary = logger.get_evaluation_summary(new_eval_id)
+    assert summary is not None
+    assert summary["evaluation_id"] == new_eval_id
+
+
+def test_api_clear_results_endpoint_and_running_guard():
+    """Verify DELETE /evaluation/results endpoint and running guard."""
+    from app.evaluation.routes import eval_service
+
+    # 1. Guard check: when an experiment is running, clear must be rejected with 409
+    eval_service._active_runs = 1
+    resp_conflict = client.delete("/evaluation/results")
+    assert resp_conflict.status_code == 409
+    assert "currently running" in resp_conflict.json()["detail"]
+
+    # Reset active runs
+    eval_service._active_runs = 0
+
+    # 2. Successful clear via API
+    with patch.object(eval_service.logger, "clear_results") as mock_clear:
+        mock_clear.return_value = {
+            "success": True,
+            "cleared_categories": {
+                "csv_records": True,
+                "event_logs": True,
+                "experiment_directories": 3,
+            },
+            "errors": None,
+            "message": "All M8 experiment results and generated artifacts successfully cleared.",
+            "timestamp": "2026-10-14T18:00:00Z",
+        }
+
+        resp = client.delete("/evaluation/results")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["success"] is True
+        assert data["cleared_categories"]["csv_records"] is True
+        assert data["cleared_categories"]["experiment_directories"] == 3
+        mock_clear.assert_called_once()
+
+    # 3. Test alias endpoint /evaluation/experiments
+    with patch.object(eval_service.logger, "clear_results") as mock_clear_alias:
+        mock_clear_alias.return_value = {
+            "success": True,
+            "cleared_categories": {
+                "csv_records": True,
+                "event_logs": True,
+                "experiment_directories": 0,
+            },
+            "errors": None,
+            "message": "All M8 experiment results and generated artifacts successfully cleared.",
+            "timestamp": "2026-10-14T18:00:00Z",
+        }
+        resp_alias = client.delete("/evaluation/experiments")
+        assert resp_alias.status_code == 200
+        assert resp_alias.json()["success"] is True
+
+
+

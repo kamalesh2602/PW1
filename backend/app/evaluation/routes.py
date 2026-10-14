@@ -10,11 +10,15 @@ from app.evaluation.logger import logger
 from app.evaluation.models import (
     BenchmarkCase,
     BenchmarkRunRequest,
+    ClearResultsResponse,
     ComparisonResult,
     ExperimentRecord,
     PairedBenchmarkRunRequest,
 )
 from app.evaluation.service import EvaluationService
+from app.logging_config import get_app_logger
+
+app_logger = get_app_logger("evaluation.routes")
 
 router = APIRouter(
     prefix="/evaluation",
@@ -168,3 +172,49 @@ async def export_csv_dataset():
         media_type="text/csv",
         filename="m8_experiments.csv",
     )
+
+
+@router.delete(
+    "/results",
+    response_model=ClearResultsResponse,
+)
+async def clear_m8_results() -> ClearResultsResponse:
+    """
+    Safely clear all generated M8 experiment results, telemetry logs, and evaluation artifacts.
+    Resets the master CSV dataset to its initial header/schema.
+    Refuses operation if an experiment is actively running.
+    """
+    if eval_service.is_running:
+        app_logger.warning("Clear operation rejected: an evaluation experiment is currently running.")
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot clear results while an experiment is currently running. Please wait for it to complete.",
+        )
+
+    eval_service.set_clearing(True)
+    try:
+        result = eval_service.logger.clear_results()
+        if not result.get("success"):
+            app_logger.warning("M8 clear results completed with errors: %s", result.get("errors"))
+        return ClearResultsResponse(**result)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        app_logger.error("Failed to clear M8 results: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to clear experiment results due to an internal error.",
+        )
+    finally:
+        eval_service.set_clearing(False)
+
+
+@router.delete(
+    "/experiments",
+    response_model=ClearResultsResponse,
+    include_in_schema=False,
+)
+async def clear_m8_experiments_alias() -> ClearResultsResponse:
+    """Alias for DELETE /evaluation/results."""
+    return await clear_m8_results()
+

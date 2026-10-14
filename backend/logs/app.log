@@ -648,3 +648,192 @@ ValueError: "RetrievalDecision" object has no field "execution_id"
 2026-10-14 23:02:52 [INFO] [app.main]: PW1 API application starting up...
 2026-10-14 23:02:52 [INFO] [app.main]: MCP session manager initialized on /mcp
 2026-10-14 23:03:01 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:04:37 [INFO] [app.main]: PW1 API application starting up...
+2026-10-14 23:04:37 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-14 23:06:48 [INFO] [app.curator]: curation_summary: execution_id=1926f810-5767-44eb-aad1-451c6f4fdd3e mcp_calls=6 context_size=2371 time_spent=37.12s stop_reason=curator_error
+2026-10-14 23:07:08 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: 1 validation error for DebugDiagnosis
+evidence
+  Input should be a valid list [type=list_type, input_value='- Error: IndexError: lis...] (get_source_context).', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 237, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 368, in parse_result
+    pydantic_objects.append(tool(**res["args"]))
+                            ~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for DebugDiagnosis
+evidence
+  Input should be a valid list [type=list_type, input_value='- Error: IndexError: lis...] (get_source_context).', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+2026-10-14 23:12:25 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:12:28 [INFO] [app.main]: PW1 API application starting up...
+2026-10-14 23:12:28 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-14 23:13:03 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:13:07 [INFO] [app.main]: PW1 API application starting up...
+2026-10-14 23:13:07 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-14 23:13:24 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:13:27 [INFO] [app.main]: PW1 API application starting up...
+2026-10-14 23:13:27 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-14 23:13:47 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:15:47 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:24:13 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 115, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:24:13 [INFO] [app.curator]: curation_summary: execution_id=f466b29f-5cd5-465e-94d9-67a2c88e22ed mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-14 23:24:13 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 243, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:34:32 [INFO] [app.main]: PW1 API application starting up...
+2026-10-14 23:34:32 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-14 23:35:51 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-14 23:35:54 [INFO] [app.main]: PW1 API application starting up...
+2026-10-14 23:35:54 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-14 23:36:14 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 115, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:36:14 [INFO] [app.curator]: curation_summary: execution_id=eed83da5-5880-4c20-841e-cf714d3b374e mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-14 23:36:14 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 243, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:36:15 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-14 23:36:15 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:36:15 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:36:15 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-14 23:36:15 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:36:15 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-14 23:36:26 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-14 23:36:26 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=3 context_size=718 time_spent=0.00s stop_reason=budget_limit_reached
+2026-10-14 23:36:26 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-14 23:36:26 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=llm_rate_limit_exceeded
+2026-10-14 23:36:26 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 115, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:36:27 [INFO] [app.curator]: curation_summary: execution_id=3c2df046-2565-4602-91c3-49e65aab42b6 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-14 23:36:27 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 243, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:36:28 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-14 23:36:28 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:36:28 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:36:28 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-14 23:36:28 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:36:28 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-14 23:36:48 [INFO] [app.curator]: curation_summary: execution_id=b97b4643-cf3e-48df-b494-f20ffdcea0c0 mcp_calls=2 context_size=306 time_spent=9.64s stop_reason=curator_error
+2026-10-14 23:36:59 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: 'NoneType' object has no attribute 'execution_id' and no __dict__ for setting new attributes
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 243, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'execution_id' and no __dict__ for setting new attributes
+2026-10-14 23:39:44 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=11, errors=[]
+2026-10-14 23:42:32 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-14 23:43:52 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 115, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:43:53 [INFO] [app.curator]: curation_summary: execution_id=92cecd5a-9fef-44f3-9eb5-76f352dfa5cc mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-14 23:43:53 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 243, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-14 23:43:54 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.

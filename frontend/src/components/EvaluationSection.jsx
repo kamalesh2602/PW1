@@ -21,6 +21,7 @@ import {
   Activity,
   AlertTriangle,
   Info,
+  Trash2,
 } from 'lucide-react';
 import {
   getBenchmarks,
@@ -29,6 +30,7 @@ import {
   getExportCsvUrl,
   getExperimentSummary,
   getExperimentEvents,
+  clearEvaluationResults,
 } from '../services/evaluationService';
 import { getFriendlyErrorMessage, AI_UNAVAILABLE_MESSAGE } from '../utils/errorUtils';
 
@@ -77,6 +79,69 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
   const [inspectionError, setInspectionError] = useState(null);
   const [activeInspectTab, setActiveInspectTab] = useState('summary');
   const [copied, setCopied] = useState(false);
+
+  // Clear Results states
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [clearStatusMessage, setClearStatusMessage] = useState(null);
+
+  const handleOpenClearModal = () => {
+    if (isRunning || isClearing) return;
+    setIsClearModalOpen(true);
+  };
+
+  const handleCloseClearModal = () => {
+    if (isClearing) return;
+    setIsClearModalOpen(false);
+  };
+
+  const handleConfirmClear = async () => {
+    if (isClearing || isRunning) return;
+    setIsClearing(true);
+    setClearStatusMessage(null);
+
+    try {
+      const res = await clearEvaluationResults();
+      if (res && res.success) {
+        // Immediately reset all frontend result & inspection states to empty state
+        setRecentExperiments([]);
+        setComparisonResult(null);
+        setSelectedEvaluationId(null);
+        setInspectedRecord(null);
+        setInspectionSummary(null);
+        setInspectionEvents([]);
+        setInspectionError(null);
+
+        setClearStatusMessage({
+          type: 'success',
+          text: res.message || 'All M8 experiment results and generated artifacts successfully cleared.',
+        });
+
+        setIsClearModalOpen(false);
+        fetchHistory();
+      } else {
+        setClearStatusMessage({
+          type: 'error',
+          text: res?.message || 'Encountered an issue clearing some M8 artifacts.',
+        });
+        setIsClearModalOpen(false);
+        fetchHistory();
+      }
+    } catch (err) {
+      console.error('Failed to clear M8 results:', err);
+      const detail =
+        err.response?.data?.detail ||
+        err.message ||
+        'Failed to clear M8 experiment results. Please try again.';
+      setClearStatusMessage({
+        type: 'error',
+        text: detail,
+      });
+      setIsClearModalOpen(false);
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   useEffect(() => {
     fetchBenchmarks();
@@ -219,8 +284,53 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             <RefreshCw size={14} className={isLoadingHistory ? 'spin-icon' : ''} />
             <span>Refresh</span>
           </button>
+          <button
+            type="button"
+            id="clear-results-btn"
+            className="action-btn clear-results-btn"
+            onClick={handleOpenClearModal}
+            disabled={isClearing || isRunning}
+            title="Clear all saved M8 experiment results and generated artifacts"
+          >
+            {isClearing ? (
+              <>
+                <RefreshCw size={14} className="spin-icon" />
+                <span>Clearing...</span>
+              </>
+            ) : (
+              <>
+                <Trash2 size={14} />
+                <span>Clear Results</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Clear Status Message Banner */}
+      {clearStatusMessage && (
+        <div
+          id="clear-status-banner"
+          className={`clear-status-banner ${clearStatusMessage.type === 'success' ? 'status-banner-success' : 'status-banner-error'}`}
+        >
+          <div className="banner-content">
+            {clearStatusMessage.type === 'success' ? (
+              <CheckCircle2 size={16} className="text-success" />
+            ) : (
+              <AlertTriangle size={16} className="text-error" />
+            )}
+            <span>{clearStatusMessage.text}</span>
+          </div>
+          <button
+            type="button"
+            className="clear-banner-close-btn"
+            onClick={() => setClearStatusMessage(null)}
+            title="Dismiss message"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* 2. Experiment Controls / Benchmark Picker */}
       <div className="eval-toolbar">
@@ -974,6 +1084,91 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
           </div>
         )}
       </div>
+
+      {/* 7. Clear Results Confirmation Modal Dialog */}
+      {isClearModalOpen && (
+        <div className="modal-overlay" onClick={handleCloseClearModal}>
+          <div
+            className="clear-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-dialog-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="flex-row items-center gap-2">
+                <AlertTriangle size={18} className="text-error" />
+                <h4 id="clear-dialog-title">Clear M8 Experiment Results?</h4>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={handleCloseClearModal}
+                disabled={isClearing}
+                title="Cancel and close dialog"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p className="modal-lead-text">
+                Clear all saved M8 experiment results and generated artifacts? Benchmark definitions and source code will be preserved. This action cannot be undone.
+              </p>
+
+              <div className="modal-scope-box">
+                <div className="scope-col scope-col-delete">
+                  <span className="scope-col-title text-error">Permanently Removed:</span>
+                  <ul className="scope-list">
+                    <li>Master dataset rows (<code>m8_experiments.csv</code> will be reset to header)</li>
+                    <li>Lifecycle telemetry journal (<code>m8_events.jsonl</code> will be cleared)</li>
+                    <li>All per-experiment artifact directories (<code>summary.json</code>, <code>baseline.json</code>, <code>dynamic.json</code>, etc.)</li>
+                  </ul>
+                </div>
+                <div className="scope-col scope-col-preserve">
+                  <span className="scope-col-title text-success">Preserved:</span>
+                  <ul className="scope-list">
+                    <li>Benchmark task definitions (B001–B010)</li>
+                    <li>Application settings, configurations, and source code</li>
+                    <li>General server application logs</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                id="cancel-clear-btn"
+                className="action-btn secondary-btn"
+                onClick={handleCloseClearModal}
+                disabled={isClearing}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                id="confirm-clear-btn"
+                className="action-btn danger-btn confirm-clear-btn"
+                onClick={handleConfirmClear}
+                disabled={isClearing || isRunning}
+              >
+                {isClearing ? (
+                  <>
+                    <RefreshCw size={14} className="spin-icon" />
+                    <span>Clearing Results...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>Confirm Clear</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -6,7 +6,9 @@ and comparing Baseline vs Dynamic context curation.
 import os
 import time
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from threading import Lock
 from typing import Any, Optional
 
 from app.agent.fixer import FixerAgent
@@ -24,6 +26,35 @@ class EvaluationService:
         self.fixer = FixerAgent()
         self.store = store
         self.logger = logger if logger is not None else default_logger
+        self._active_runs: int = 0
+        self._is_clearing: bool = False
+        self._run_lock = Lock()
+
+    @property
+    def is_running(self) -> bool:
+        with self._run_lock:
+            return self._active_runs > 0
+
+    @property
+    def is_clearing(self) -> bool:
+        with self._run_lock:
+            return self._is_clearing
+
+    def set_clearing(self, clearing: bool) -> None:
+        with self._run_lock:
+            self._is_clearing = clearing
+
+    @asynccontextmanager
+    async def _track_run(self):
+        with self._run_lock:
+            if self._is_clearing:
+                raise RuntimeError("Cannot start an experiment while a clear operation is in progress.")
+            self._active_runs += 1
+        try:
+            yield
+        finally:
+            with self._run_lock:
+                self._active_runs = max(0, self._active_runs - 1)
 
     async def run_experiment(
         self,
@@ -38,6 +69,27 @@ class EvaluationService:
         """
         Execute a single evaluation experiment (either 'baseline' or 'dynamic').
         """
+        async with self._track_run():
+            return await self._do_run_experiment(
+                code=code,
+                language=language,
+                stdin=stdin,
+                mode=mode,
+                bug_id=bug_id,
+                evaluation_id=evaluation_id,
+                baseline_context_chars=baseline_context_chars,
+            )
+
+    async def _do_run_experiment(
+        self,
+        code: str,
+        language: str = "python",
+        stdin: str = "",
+        mode: str = "dynamic",
+        bug_id: str = "CUSTOM",
+        evaluation_id: Optional[str] = None,
+        baseline_context_chars: Optional[int] = None,
+    ) -> ExperimentRecord:
         clean_mode = mode.strip().lower()
         if clean_mode not in ("baseline", "dynamic"):
             clean_mode = "dynamic"
@@ -341,6 +393,23 @@ class EvaluationService:
         Run both Baseline (Full Context) and Dynamic (Curated Context) on the exact same task.
         Both runs share a common evaluation_id (pair identifier).
         """
+        async with self._track_run():
+            return await self._do_run_paired_experiment(
+                bug_id=bug_id,
+                code=code,
+                language=language,
+                stdin=stdin,
+                evaluation_id=evaluation_id,
+            )
+
+    async def _do_run_paired_experiment(
+        self,
+        bug_id: Optional[str] = None,
+        code: Optional[str] = None,
+        language: str = "python",
+        stdin: str = "",
+        evaluation_id: Optional[str] = None,
+    ) -> ComparisonResult:
         effective_bug_id = bug_id.upper() if bug_id else "CUSTOM"
         effective_code = code
 

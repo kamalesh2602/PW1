@@ -176,3 +176,20 @@ class ComparisonResult(BaseModel):
     token_reduction_percent: Optional[float] = None
     time_difference_ms: float
     status: str = "completed"
+
+
+class ClearResultsResponse(BaseModel):
+    """
+    Response schema for clearing M8 evaluation experiment results and artifacts.
+    """
+    success: bool = Field(description="Whether the clearing operation completed successfully")
+    message: str = Field(description="Summary of the clearing operation")
+    cleared_categories: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Categories of artifacts cleared (csv_records, event_logs, experiment_directories)",
+    )
+    timestamp: str = Field(description="ISO 8601 timestamp of operation")
+    errors: Optional[list[str]] = Field(
+        default=None,
+        description="List of sanitized error descriptions if clearing encountered issues",
+    )

@@ -20,6 +20,9 @@ from threading import Lock
 from typing import Any, Optional
 
 from app.evaluation.models import ComparisonResult, ExperimentRecord
+from app.logging_config import get_app_logger
+
+app_logger = get_app_logger("evaluation.logger")
 
 # Paths relative to backend root
 BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -705,6 +708,117 @@ class ExperimentLogger:
     def export_csv_path(self) -> Path:
         """Return the filesystem path to the master CSV dataset."""
         return self.csv_path
+
+    def clear_results(self) -> dict[str, Any]:
+        """
+        Safely clear all generated M8 evaluation results, reset CSV dataset to header,
+        truncate the events journal, and remove per-experiment artifact directories.
+
+        Preserves benchmark definitions, configuration, code, and non-M8 logs.
+        Strictly enforces path containment within self.data_dir to prevent path traversal.
+        """
+        errors: list[str] = []
+        cleared_dirs_count = 0
+        csv_cleared = False
+        events_cleared = False
+
+        with _log_lock:
+            base_dir = self.data_dir.resolve()
+
+            # 1. Reset master CSV dataset to header
+            try:
+                # Verify path containment
+                if self.csv_path.resolve() == base_dir / CSV_FILENAME or self.csv_path.resolve().is_relative_to(base_dir):
+                    self.data_dir.mkdir(parents=True, exist_ok=True)
+                    with open(self.csv_path, mode="w", newline="", encoding="utf-8") as f:
+                        writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
+                        writer.writeheader()
+                    csv_cleared = True
+                else:
+                    errors.append("CSV path resolves outside allowed data directory.")
+            except Exception as e:
+                errors.append(f"Failed to reset CSV dataset: {type(e).__name__}")
+
+            # Reset legacy CSV if it exists and we are in default data dir
+            if self.data_dir == DEFAULT_M8_DATA_DIR:
+                legacy_csv = DEFAULT_DATA_DIR / CSV_FILENAME
+                try:
+                    if legacy_csv.exists() and legacy_csv.resolve().is_relative_to(DEFAULT_DATA_DIR.resolve()):
+                        with open(legacy_csv, mode="w", newline="", encoding="utf-8") as f:
+                            writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
+                            writer.writeheader()
+                except Exception:
+                    pass
+
+            # 2. Reset events journal
+            try:
+                if self.jsonl_path.resolve() == base_dir / JSONL_FILENAME or self.jsonl_path.resolve().is_relative_to(base_dir):
+                    self.data_dir.mkdir(parents=True, exist_ok=True)
+                    self.jsonl_path.write_text("", encoding="utf-8")
+                    events_cleared = True
+                else:
+                    errors.append("Events log path resolves outside allowed data directory.")
+            except Exception as e:
+                errors.append(f"Failed to reset event log: {type(e).__name__}")
+
+            # Reset legacy events log if in default dir
+            if self.data_dir == DEFAULT_M8_DATA_DIR:
+                legacy_jsonl = DEFAULT_DATA_DIR / JSONL_FILENAME
+                try:
+                    if legacy_jsonl.exists() and legacy_jsonl.resolve().is_relative_to(DEFAULT_DATA_DIR.resolve()):
+                        legacy_jsonl.write_text("", encoding="utf-8")
+                except Exception:
+                    pass
+
+            # 3. Clear per-experiment artifact directories
+            try:
+                if self.experiments_dir.exists():
+                    exp_dir_resolved = self.experiments_dir.resolve()
+                    if not exp_dir_resolved.is_relative_to(base_dir):
+                        errors.append("Experiments directory resolves outside allowed data directory.")
+                    else:
+                        for child in self.experiments_dir.iterdir():
+                            try:
+                                if not child.resolve().is_relative_to(exp_dir_resolved):
+                                    errors.append(f"Skipping child outside allowed directory: {child.name}")
+                                    continue
+                                if child.is_dir():
+                                    shutil.rmtree(child)
+                                    cleared_dirs_count += 1
+                                elif child.is_file():
+                                    child.unlink()
+                            except Exception as child_err:
+                                errors.append(f"Failed to delete artifact item: {type(child_err).__name__}")
+                # Ensure directory remains available for future runs
+                self.experiments_dir.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                errors.append(f"Failed while clearing experiments directory: {type(e).__name__}")
+
+            success = len(errors) == 0 and csv_cleared and events_cleared
+            timestamp = datetime.now(timezone.utc).isoformat()
+
+            app_logger.info(
+                "M8 experiment clearing executed. success=%s, dirs_cleared=%d, errors=%s",
+                success,
+                cleared_dirs_count,
+                errors,
+            )
+
+            return {
+                "success": success,
+                "cleared_categories": {
+                    "csv_records": csv_cleared,
+                    "event_logs": events_cleared,
+                    "experiment_directories": cleared_dirs_count,
+                },
+                "errors": errors if errors else None,
+                "message": (
+                    "All M8 experiment results and generated artifacts successfully cleared."
+                    if success
+                    else "Encountered an issue clearing some M8 artifacts."
+                ),
+                "timestamp": timestamp,
+            }
 
 
 # Default shared logger instance
