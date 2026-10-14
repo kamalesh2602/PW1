@@ -1911,6 +1911,12 @@ html, body {
   font-family: var(--font-mono);
 }
 
+.text-increase {
+  color: #f59e0b;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
 .outcome-pill {
   display: inline-flex;
   align-items: center;

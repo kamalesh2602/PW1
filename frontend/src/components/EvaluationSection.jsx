@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FlaskConical,
   Play,
@@ -19,6 +19,8 @@ import {
   Check,
   Terminal,
   Activity,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import {
   getBenchmarks,
@@ -30,6 +32,32 @@ import {
 } from '../services/evaluationService';
 import { getFriendlyErrorMessage, AI_UNAVAILABLE_MESSAGE } from '../utils/errorUtils';
 
+// Helper function to format reduction honestly without misleading negative signs
+const formatReduction = (percent, isToken = false) => {
+  if (percent === null || percent === undefined || isNaN(percent)) {
+    return 'N/A';
+  }
+  const val = Number(percent);
+  if (val > 0) {
+    return `${val.toFixed(1)}% reduction`;
+  } else if (val < 0) {
+    return `+${Math.abs(val).toFixed(1)}% increased usage`;
+  }
+  return '0.0% (no change)';
+};
+
+// Helper function for concise table reduction column
+const formatTableReduction = (percent) => {
+  if (percent === null || percent === undefined || isNaN(percent) || percent === 0) {
+    return '-';
+  }
+  const val = Number(percent);
+  if (val > 0) {
+    return `${val.toFixed(1)}%`;
+  }
+  return `+${Math.abs(val).toFixed(1)}%`;
+};
+
 export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
   const [benchmarks, setBenchmarks] = useState([]);
   const [selectedBugId, setSelectedBugId] = useState('B001');
@@ -40,10 +68,13 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // Inspection states
+  const inspectorRef = useRef(null);
   const [selectedEvaluationId, setSelectedEvaluationId] = useState(null);
+  const [inspectedRecord, setInspectedRecord] = useState(null);
   const [inspectionSummary, setInspectionSummary] = useState(null);
   const [inspectionEvents, setInspectionEvents] = useState([]);
   const [isLoadingInspection, setIsLoadingInspection] = useState(false);
+  const [inspectionError, setInspectionError] = useState(null);
   const [activeInspectTab, setActiveInspectTab] = useState('summary');
   const [copied, setCopied] = useState(false);
 
@@ -94,19 +125,54 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
     }
   };
 
-  const handleInspectEvaluation = async (evalId) => {
-    if (!evalId || evalId === '-') return;
-    setSelectedEvaluationId(evalId);
+  const handleInspectEvaluation = async (evalId, expRecord = null) => {
+    const targetId = evalId || expRecord?.evaluation_id || expRecord?.experiment_id;
+    if (!targetId || targetId === '-') return;
+
+    setSelectedEvaluationId(targetId);
+    setInspectedRecord(expRecord);
     setIsLoadingInspection(true);
+    setInspectionError(null);
+
+    // Scroll inspector card smoothly into view
+    setTimeout(() => {
+      inspectorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+
     try {
       const [sumRes, evRes] = await Promise.allSettled([
-        getExperimentSummary(evalId),
-        getExperimentEvents(evalId),
+        getExperimentSummary(targetId),
+        getExperimentEvents(targetId),
       ]);
-      setInspectionSummary(sumRes.status === 'fulfilled' ? sumRes.value : null);
-      setInspectionEvents(evRes.status === 'fulfilled' ? evRes.value : []);
+
+      let hasArtifactData = false;
+
+      if (sumRes.status === 'fulfilled' && sumRes.value) {
+        setInspectionSummary(sumRes.value);
+        hasArtifactData = true;
+      } else {
+        setInspectionSummary(null);
+      }
+
+      if (evRes.status === 'fulfilled' && Array.isArray(evRes.value)) {
+        setInspectionEvents(evRes.value);
+        if (evRes.value.length > 0) {
+          hasArtifactData = true;
+        }
+      } else {
+        setInspectionEvents([]);
+      }
+
+      if (!hasArtifactData) {
+        const errorDetail =
+          sumRes.reason?.response?.data?.detail ||
+          sumRes.reason?.message ||
+          `No artifact files or summary found for '${targetId}'.`;
+        setInspectionError(errorDetail);
+      }
     } catch (err) {
       console.error('Failed to load evaluation inspection:', err);
+      setInspectionError(err.response?.data?.detail || err.message || 'Failed to retrieve experiment details.');
     } finally {
       setIsLoadingInspection(false);
     }
@@ -274,22 +340,18 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
               <div className="reduction-pill">
                 <TrendingDown size={14} />
                 <span>
-                  Context Reduction:{' '}
-                  {comparisonResult.context_reduction_percent !== null
-                    ? `${comparisonResult.context_reduction_percent}%`
-                    : 'N/A'}
+                  Context Character Reduction:{' '}
+                  {formatReduction(comparisonResult.context_reduction_percent)}
                 </span>
               </div>
             </div>
           </div>
 
           <div className="comparison-kpi-grid">
-            <div className="kpi-card highlight-kpi">
-              <span className="kpi-label">Context Reduction</span>
-              <div className="kpi-value text-reduction">
-                {comparisonResult.context_reduction_percent !== null
-                  ? `-${comparisonResult.context_reduction_percent}%`
-                  : 'N/A'}
+            <div className="kpi-card">
+              <span className="kpi-label">Context Character Reduction</span>
+              <div className={`kpi-value ${comparisonResult.context_reduction_percent > 0 ? 'text-reduction' : comparisonResult.context_reduction_percent < 0 ? 'text-increase' : ''}`}>
+                {formatReduction(comparisonResult.context_reduction_percent)}
               </div>
               <span className="kpi-sub">
                 {(comparisonResult.dynamic.context_chars ?? 0).toLocaleString()} vs {(comparisonResult.baseline.context_chars ?? 0).toLocaleString()} chars
@@ -297,29 +359,31 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             </div>
 
             <div className="kpi-card">
-              <span className="kpi-label">Token Savings</span>
+              <span className="kpi-label">LLM Input Tokens</span>
               <div className="kpi-value">
-                {comparisonResult.token_reduction_percent !== null
-                  ? `-${comparisonResult.token_reduction_percent}%`
+                {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.input_tokens !== null
+                  ? `${comparisonResult.dynamic.input_tokens.toLocaleString()} tokens`
                   : 'N/A'}
               </div>
               <span className="kpi-sub">
-                {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.total_tokens !== null
-                  ? `${comparisonResult.dynamic.total_tokens.toLocaleString()} tokens`
-                  : 'Tokens tracked on OpenRouter'}
+                {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.input_tokens !== null
+                  ? `Baseline: ${comparisonResult.baseline.input_tokens.toLocaleString()} tokens`
+                  : 'Provider metadata unavailable'}
               </span>
             </div>
 
             <div className="kpi-card">
-              <span className="kpi-label">Targeted MCP Calls</span>
+              <span className="kpi-label">Execution Overhead</span>
               <div className="kpi-value text-accent">
-                {comparisonResult.dynamic.mcp_calls}
+                {comparisonResult.dynamic.llm_calls} LLM / {comparisonResult.dynamic.mcp_calls} MCP
               </div>
-              <span className="kpi-sub">Selective runtime state queries</span>
+              <span className="kpi-sub">
+                Baseline: {comparisonResult.baseline.llm_calls} LLM / 0 MCP calls
+              </span>
             </div>
 
             <div className="kpi-card">
-              <span className="kpi-label">Repair Correctness</span>
+              <span className="kpi-label">Debugging Effectiveness</span>
               <div className="kpi-value">
                 {comparisonResult.dynamic.fix_correct ? (
                   <span className="text-success flex-row items-center gap-1">
@@ -335,7 +399,9 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   </span>
                 )}
               </div>
-              <span className="kpi-sub">Re-execution & semantic validation</span>
+              <span className="kpi-sub">
+                Root Cause: {comparisonResult.dynamic.root_cause_identified ? 'Yes' : 'No'} • Re-exec: {comparisonResult.dynamic.re_execution_passed ? 'Pass' : 'Fail'}
+              </span>
             </div>
           </div>
 
@@ -350,8 +416,9 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                 </tr>
               </thead>
               <tbody>
+                {/* Group A: Context Efficiency */}
                 <tr className="table-group-header">
-                  <td colSpan={4}>Context & Token Consumption</td>
+                  <td colSpan={4}>A. Context Efficiency</td>
                 </tr>
                 <tr>
                   <td className="metric-name">Status</td>
@@ -368,66 +435,52 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   <td>Run execution status</td>
                 </tr>
                 <tr>
-                  <td className="metric-name">Context Size (chars)</td>
+                  <td className="metric-name">Context Size (characters)</td>
                   <td>{(comparisonResult.baseline.context_chars ?? comparisonResult.baseline.context_size ?? 0).toLocaleString()} chars</td>
                   <td>{(comparisonResult.dynamic.context_chars ?? comparisonResult.dynamic.context_size ?? 0).toLocaleString()} chars</td>
-                  <td className="text-reduction">
-                    {comparisonResult.context_reduction_percent !== null
-                      ? `${comparisonResult.context_reduction_percent}% fewer context characters`
-                      : 'N/A'}
+                  <td className={comparisonResult.context_reduction_percent > 0 ? 'text-reduction' : comparisonResult.context_reduction_percent < 0 ? 'text-increase' : ''}>
+                    {formatReduction(comparisonResult.context_reduction_percent)}
                   </td>
                 </tr>
                 <tr>
-                  <td className="metric-name">Input Tokens (tokens)</td>
+                  <td className="metric-name">Actual LLM Input Tokens</td>
                   <td>
                     {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.input_tokens !== null
                       ? `${comparisonResult.baseline.input_tokens.toLocaleString()} tokens`
-                      : 'N/A — token usage unavailable'}
+                      : 'N/A — provider metadata unavailable'}
                   </td>
                   <td>
                     {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.input_tokens !== null
                       ? `${comparisonResult.dynamic.input_tokens.toLocaleString()} tokens`
-                      : 'N/A — token usage unavailable'}
+                      : 'N/A — provider metadata unavailable'}
                   </td>
-                  <td>Prompt token consumption</td>
+                  <td>Prompt tokens provided to LLM</td>
                 </tr>
                 <tr>
-                  <td className="metric-name">Output Tokens (tokens)</td>
-                  <td>
-                    {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.output_tokens !== null
-                      ? `${comparisonResult.baseline.output_tokens.toLocaleString()} tokens`
-                      : 'N/A — token usage unavailable'}
-                  </td>
-                  <td>
-                    {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.output_tokens !== null
-                      ? `${comparisonResult.dynamic.output_tokens.toLocaleString()} tokens`
-                      : 'N/A — token usage unavailable'}
-                  </td>
-                  <td>Completion token consumption</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">Total Tokens (tokens)</td>
+                  <td className="metric-name">Total LLM Tokens</td>
                   <td>
                     {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.total_tokens !== null
                       ? `${comparisonResult.baseline.total_tokens.toLocaleString()} tokens`
-                      : 'N/A — token usage unavailable'}
+                      : 'N/A — provider metadata unavailable'}
                   </td>
                   <td>
                     {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.total_tokens !== null
                       ? `${comparisonResult.dynamic.total_tokens.toLocaleString()} tokens (Curator: ${comparisonResult.dynamic.curator_total_tokens ?? 0}, Debugger: ${comparisonResult.dynamic.debugger_total_tokens ?? 0})`
-                      : 'N/A — token usage unavailable'}
+                      : 'N/A — provider metadata unavailable'}
                   </td>
                   <td>
                     {comparisonResult.token_reduction_percent !== null
-                      ? `${comparisonResult.token_reduction_percent}% fewer total tokens`
+                      ? formatReduction(comparisonResult.token_reduction_percent, true)
                       : 'N/A (provider metadata unavailable)'}
                   </td>
                 </tr>
+
+                {/* Group B: Execution Overhead */}
                 <tr className="table-group-header">
-                  <td colSpan={4}>Selective Retrieval & Agent Operations</td>
+                  <td colSpan={4}>B. Execution Overhead</td>
                 </tr>
                 <tr>
-                  <td className="metric-name">LLM Calls</td>
+                  <td className="metric-name">Total LLM Calls</td>
                   <td>{comparisonResult.baseline.llm_calls} call</td>
                   <td>{comparisonResult.dynamic.llm_calls} calls</td>
                   <td>
@@ -437,46 +490,28 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   </td>
                 </tr>
                 <tr>
-                  <td className="metric-name">MCP Tool Calls</td>
+                  <td className="metric-name">Total MCP Calls</td>
                   <td>0 calls (Direct Context)</td>
                   <td>{comparisonResult.dynamic.mcp_calls} calls (Selective Retrieval)</td>
-                  <td>Dynamic query via MCP server</td>
+                  <td>Dynamic MCP tool queries</td>
                 </tr>
+                <tr>
+                  <td className="metric-name">
+                    Total Experiment Time (ms)
+                    <span className="block text-xs text-muted font-normal">End-to-end wall-clock time</span>
+                  </td>
+                  <td>{(comparisonResult.baseline.total_experiment_time_ms || 0).toFixed(1)} ms</td>
+                  <td>{(comparisonResult.dynamic.total_experiment_time_ms || 0).toFixed(1)} ms</td>
+                  <td>
+                    {comparisonResult.time_difference_ms > 0
+                      ? `+${comparisonResult.time_difference_ms.toFixed(1)} ms`
+                      : `${comparisonResult.time_difference_ms.toFixed(1)} ms`}
+                  </td>
+                </tr>
+
+                {/* Group C: Debugging Effectiveness */}
                 <tr className="table-group-header">
-                  <td colSpan={4}>Latency & Execution Timing</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">LLM Time (ms)</td>
-                  <td>{comparisonResult.baseline.llm_time_ms.toFixed(1)} ms</td>
-                  <td>{comparisonResult.dynamic.llm_time_ms.toFixed(1)} ms</td>
-                  <td>Total model query duration</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">MCP Query Time (ms)</td>
-                  <td>0.0 ms</td>
-                  <td>{comparisonResult.dynamic.mcp_query_time_ms.toFixed(1)} ms</td>
-                  <td>Isolated MCP tool execution</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">MCP Transport Time (ms)</td>
-                  <td>0.0 ms</td>
-                  <td>{comparisonResult.dynamic.mcp_transport_time_ms.toFixed(1)} ms</td>
-                  <td>MCP client transport/session overhead</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">MCP Total Time (ms)</td>
-                  <td>0.0 ms</td>
-                  <td>{(comparisonResult.dynamic.mcp_total_time_ms || comparisonResult.dynamic.mcp_time_ms || 0).toFixed(1)} ms</td>
-                  <td>Combined MCP overhead (query + transport)</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">Total Experiment Time (ms)</td>
-                  <td>{(comparisonResult.baseline.total_experiment_time_ms || comparisonResult.baseline.total_time_ms || 0).toFixed(1)} ms</td>
-                  <td>{(comparisonResult.dynamic.total_experiment_time_ms || comparisonResult.dynamic.total_time_ms || 0).toFixed(1)} ms</td>
-                  <td>{comparisonResult.time_difference_ms > 0 ? `+${comparisonResult.time_difference_ms.toFixed(1)} ms duration` : `${comparisonResult.time_difference_ms.toFixed(1)} ms duration`}</td>
-                </tr>
-                <tr className="table-group-header">
-                  <td colSpan={4}>Diagnostic & Repair Effectiveness</td>
+                  <td colSpan={4}>C. Debugging Effectiveness</td>
                 </tr>
                 <tr>
                   <td className="metric-name">Root Cause Identified</td>
@@ -494,25 +529,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                       <span className="outcome-pill failure"><XCircle size={12} /> No</span>
                     )}
                   </td>
-                  <td>Empirical diagnostic accuracy</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">Fix Generated</td>
-                  <td>
-                    {comparisonResult.baseline.fix_generated ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Yes</span>
-                    ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> No</span>
-                    )}
-                  </td>
-                  <td>
-                    {comparisonResult.dynamic.fix_generated ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Yes</span>
-                    ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> No</span>
-                    )}
-                  </td>
-                  <td>Candidate patch synthesized</td>
+                  <td>Root cause diagnosis outcome</td>
                 </tr>
                 <tr>
                   <td className="metric-name">Re-execution Passed</td>
@@ -558,7 +575,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
 
       {/* 5. Detailed Research Run Inspector (Expandable Modal / Card) */}
       {selectedEvaluationId && (
-        <div className="evaluation-inspector-card">
+        <div ref={inspectorRef} id="research-inspector" className="evaluation-inspector-card">
           <div className="inspector-header">
             <div className="inspector-header-left">
               <Layers size={18} className="text-accent" />
@@ -566,6 +583,15 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                 <h4>Research Artifact Inspector</h4>
                 <div className="inspector-id-row">
                   <span className="font-mono text-xs text-muted">Evaluation ID: {selectedEvaluationId}</span>
+                  {inspectedRecord?.experiment_id && inspectedRecord.experiment_id !== selectedEvaluationId && (
+                    <span className="font-mono text-xs text-muted">| Exp: {inspectedRecord.experiment_id.slice(-16)}</span>
+                  )}
+                  {inspectedRecord?.bug_id && (
+                    <span className="badge category-badge">{inspectedRecord.bug_id}</span>
+                  )}
+                  {inspectedRecord?.mode && (
+                    <span className={`mode-badge ${inspectedRecord.mode}`}>{inspectedRecord.mode}</span>
+                  )}
                   <button
                     type="button"
                     className="copy-id-btn"
@@ -581,7 +607,11 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             <button
               type="button"
               className="close-inspector-btn"
-              onClick={() => setSelectedEvaluationId(null)}
+              onClick={() => {
+                setSelectedEvaluationId(null);
+                setInspectionError(null);
+                setInspectedRecord(null);
+              }}
               title="Close Inspector"
             >
               <X size={16} />
@@ -602,6 +632,14 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             </div>
           </div>
 
+          {/* Error Alert if artifacts failed to load */}
+          {inspectionError && (
+            <div className="eval-error-banner" style={{ margin: '4px 0' }}>
+              <AlertTriangle size={16} />
+              <span>{inspectionError}</span>
+            </div>
+          )}
+
           {/* Inspector Tabs */}
           <div className="inspector-tabs">
             <button
@@ -610,7 +648,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
               onClick={() => setActiveInspectTab('summary')}
             >
               <Sparkles size={14} />
-              <span>Paired Summary</span>
+              <span>Experiment Summary</span>
             </button>
             <button
               type="button"
@@ -639,105 +677,156 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             <div className="inspector-content">
               {activeInspectTab === 'summary' && (
                 <div className="inspector-summary-view">
-                  {inspectionSummary ? (
-                    <div className="summary-grid">
-                      <div className="summary-mode-card baseline-card">
-                        <div className="summary-mode-header">
-                          <span className="mode-badge baseline">Baseline Run</span>
-                          <span className="font-mono text-xs text-muted">{inspectionSummary.baseline?.experiment_id}</span>
-                        </div>
-                        <div className="summary-metrics-list">
-                          <div className="metric-row">
-                            <span>Status:</span>
-                            <span className="font-semibold">{inspectionSummary.baseline?.status}</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Context Size:</span>
-                            <span className="font-mono font-bold">{(inspectionSummary.baseline?.context_chars ?? 0).toLocaleString()} chars</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Total Tokens:</span>
-                            <span className="font-mono">
-                              {inspectionSummary.baseline?.token_usage_available && inspectionSummary.baseline?.total_tokens !== null
-                                ? `${inspectionSummary.baseline.total_tokens.toLocaleString()} tokens`
-                                : 'N/A — token usage unavailable'}
-                            </span>
-                          </div>
-                          <div className="metric-row">
-                            <span>LLM Calls / MCP:</span>
-                            <span>{inspectionSummary.baseline?.llm_calls} call(s) / {inspectionSummary.baseline?.mcp_calls} MCP</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>LLM Time:</span>
-                            <span className="font-mono">{(inspectionSummary.baseline?.llm_time_ms ?? 0).toFixed(1)} ms</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Total Experiment Time:</span>
-                            <span className="font-mono">{(inspectionSummary.baseline?.total_experiment_time_ms ?? 0).toFixed(1)} ms</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Root Cause Identified:</span>
-                            <span>{inspectionSummary.baseline?.root_cause_identified ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Fix Correct / Passed:</span>
-                            <span>{inspectionSummary.baseline?.fix_correct ? 'Validated' : 'No'}</span>
-                          </div>
-                        </div>
-                      </div>
+                  {(() => {
+                    const baseData =
+                      inspectionSummary?.baseline ||
+                      (inspectionSummary?.mode === 'baseline' ? inspectionSummary : null);
+                    const dynData =
+                      inspectionSummary?.dynamic ||
+                      (inspectionSummary?.mode === 'dynamic' ? inspectionSummary : null);
 
-                      <div className="summary-mode-card dynamic-card">
-                        <div className="summary-mode-header">
-                          <span className="mode-badge dynamic">Dynamic Run</span>
-                          <span className="font-mono text-xs text-muted">{inspectionSummary.dynamic?.experiment_id}</span>
+                    if (!baseData && !dynData) {
+                      return (
+                        <div className="inspector-empty">
+                          No summary artifact available for this run. Raw event logs may still be viewed under the Lifecycle Events or Raw JSON tabs.
                         </div>
-                        <div className="summary-metrics-list">
-                          <div className="metric-row">
-                            <span>Status:</span>
-                            <span className="font-semibold">{inspectionSummary.dynamic?.status}</span>
+                      );
+                    }
+
+                    return (
+                      <div className="summary-grid">
+                        {baseData && (
+                          <div className="summary-mode-card baseline-card">
+                            <div className="summary-mode-header">
+                              <span className="mode-badge baseline">Baseline Run</span>
+                              <span className="font-mono text-xs text-muted">{baseData.experiment_id || baseData.evaluation_id}</span>
+                            </div>
+                            <div className="summary-metrics-list">
+                              <div className="metric-row">
+                                <span>Status:</span>
+                                <span className="font-semibold">{baseData.status || 'completed'}</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Context Size:</span>
+                                <span className="font-mono font-bold">{(baseData.context_chars ?? baseData.context_size ?? 0).toLocaleString()} chars</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Actual Input Tokens:</span>
+                                <span className="font-mono">
+                                  {baseData.token_usage_available && baseData.input_tokens !== null
+                                    ? `${baseData.input_tokens.toLocaleString()} tokens`
+                                    : 'N/A — token usage unavailable'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Total Tokens:</span>
+                                <span className="font-mono">
+                                  {baseData.token_usage_available && baseData.total_tokens !== null
+                                    ? `${baseData.total_tokens.toLocaleString()} tokens`
+                                    : 'N/A — token usage unavailable'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>LLM Calls:</span>
+                                <span>{baseData.llm_calls ?? 1} call(s)</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>MCP Calls:</span>
+                                <span>{baseData.mcp_calls ?? 0} MCP call(s)</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Total Experiment Time:</span>
+                                <span className="font-mono">{(baseData.total_experiment_time_ms ?? baseData.total_time_ms ?? 0).toFixed(1)} ms</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Root Cause Identified:</span>
+                                <span>{baseData.root_cause_identified ? 'Yes' : 'No'}</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Re-execution Passed:</span>
+                                <span>{baseData.re_execution_passed ? 'Passed (Exit 0)' : 'Failed'}</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Fix Correct:</span>
+                                <span className={baseData.fix_correct ? 'text-success font-semibold' : 'text-muted'}>
+                                  {baseData.fix_correct ? 'Validated' : 'Not Validated'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Stop Reason:</span>
+                                <span className="text-xs text-muted">{baseData.stop_reason || 'completed'}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="metric-row">
-                            <span>Context Size:</span>
-                            <span className="font-mono font-bold text-success">{(inspectionSummary.dynamic?.context_chars ?? 0).toLocaleString()} chars</span>
+                        )}
+
+                        {dynData && (
+                          <div className="summary-mode-card dynamic-card">
+                            <div className="summary-mode-header">
+                              <span className="mode-badge dynamic">Dynamic Run</span>
+                              <span className="font-mono text-xs text-muted">{dynData.experiment_id || dynData.evaluation_id}</span>
+                            </div>
+                            <div className="summary-metrics-list">
+                              <div className="metric-row">
+                                <span>Status:</span>
+                                <span className="font-semibold">{dynData.status || 'completed'}</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Context Size:</span>
+                                <span className="font-mono font-bold text-success">{(dynData.context_chars ?? dynData.context_size ?? 0).toLocaleString()} chars</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Actual Input Tokens:</span>
+                                <span className="font-mono">
+                                  {dynData.token_usage_available && dynData.input_tokens !== null
+                                    ? `${dynData.input_tokens.toLocaleString()} tokens`
+                                    : 'N/A — token usage unavailable'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Total Tokens:</span>
+                                <span className="font-mono">
+                                  {dynData.token_usage_available && dynData.total_tokens !== null
+                                    ? `${dynData.total_tokens.toLocaleString()} tokens (Curator: ${dynData.curator_total_tokens ?? 0}, Debugger: ${dynData.debugger_total_tokens ?? 0})`
+                                    : 'N/A — token usage unavailable'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>LLM Calls:</span>
+                                <span>{dynData.llm_calls ?? 1} call(s)</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>MCP Calls:</span>
+                                <span>{dynData.mcp_calls ?? 0} MCP call(s)</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Total Experiment Time:</span>
+                                <span className="font-mono">{(dynData.total_experiment_time_ms ?? dynData.total_time_ms ?? 0).toFixed(1)} ms</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Root Cause Identified:</span>
+                                <span>{dynData.root_cause_identified ? 'Yes' : 'No'}</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Re-execution Passed:</span>
+                                <span>{dynData.re_execution_passed ? 'Passed (Exit 0)' : 'Failed'}</span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Fix Correct:</span>
+                                <span className={dynData.fix_correct ? 'text-success font-semibold' : 'text-muted'}>
+                                  {dynData.fix_correct ? 'Validated' : 'Not Validated'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Stop Reason:</span>
+                                <span className="text-xs text-muted">{dynData.stop_reason || 'completed'}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="metric-row">
-                            <span>Total Tokens:</span>
-                            <span className="font-mono">
-                              {inspectionSummary.dynamic?.token_usage_available && inspectionSummary.dynamic?.total_tokens !== null
-                                ? `${inspectionSummary.dynamic.total_tokens.toLocaleString()} tokens (Curator: ${inspectionSummary.dynamic.curator_total_tokens ?? 0}, Debugger: ${inspectionSummary.dynamic.debugger_total_tokens ?? 0})`
-                                : 'N/A — token usage unavailable'}
-                            </span>
-                          </div>
-                          <div className="metric-row">
-                            <span>LLM Calls / MCP:</span>
-                            <span>{inspectionSummary.dynamic?.llm_calls} call(s) / {inspectionSummary.dynamic?.mcp_calls} MCP</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>LLM Time:</span>
-                            <span className="font-mono">{(inspectionSummary.dynamic?.llm_time_ms ?? 0).toFixed(1)} ms</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>MCP Overhead (total):</span>
-                            <span className="font-mono">{(inspectionSummary.dynamic?.mcp_total_time_ms ?? 0).toFixed(1)} ms</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Total Experiment Time:</span>
-                            <span className="font-mono">{(inspectionSummary.dynamic?.total_experiment_time_ms ?? 0).toFixed(1)} ms</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Root Cause Identified:</span>
-                            <span>{inspectionSummary.dynamic?.root_cause_identified ? 'Yes' : 'No'}</span>
-                          </div>
-                          <div className="metric-row">
-                            <span>Fix Correct / Passed:</span>
-                            <span>{inspectionSummary.dynamic?.fix_correct ? 'Validated' : 'No'}</span>
-                          </div>
-                        </div>
+                        )}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="inspector-empty">No paired summary artifact found for this evaluation ID.</div>
-                  )}
+                    );
+                  })()}
                 </div>
               )}
 
@@ -783,7 +872,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
               {activeInspectTab === 'raw' && (
                 <div className="inspector-raw-view">
                   <pre className="raw-json-block">
-                    {JSON.stringify(inspectionSummary || inspectionEvents, null, 2)}
+                    {JSON.stringify(inspectionSummary || inspectionEvents || inspectedRecord, null, 2)}
                   </pre>
                 </div>
               )}
@@ -819,7 +908,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   <th>Mode</th>
                   <th>Status</th>
                   <th>Context Size (chars)</th>
-                  <th>Reduct %</th>
+                  <th>Context Reduct %</th>
                   <th>Total Tokens</th>
                   <th>MCP Calls</th>
                   <th>Total Time (ms)</th>
@@ -849,11 +938,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                       </span>
                     </td>
                     <td>{(exp.context_chars ?? exp.context_size ?? 0).toLocaleString()} chars</td>
-                    <td>
-                      {exp.context_reduction_percent !== null && exp.context_reduction_percent > 0
-                        ? `-${exp.context_reduction_percent}%`
-                        : '-'}
-                    </td>
+                    <td>{formatTableReduction(exp.context_reduction_percent)}</td>
                     <td>
                       {exp.token_usage_available && exp.total_tokens !== null
                         ? exp.total_tokens.toLocaleString()
@@ -875,7 +960,7 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                       <button
                         type="button"
                         className="table-inspect-btn"
-                        onClick={() => handleInspectEvaluation(exp.evaluation_id)}
+                        onClick={() => handleInspectEvaluation(exp.evaluation_id, exp)}
                         title="Inspect run artifacts and telemetry"
                       >
                         <Eye size={12} />

@@ -679,3 +679,85 @@ def test_research_traceability_from_csv(tmp_path):
     assert summary_obj is not None
     assert summary_obj["evaluation_id"] == row.evaluation_id
 
+
+def test_inspect_resolution_by_experiment_id(tmp_path):
+    """Verify Inspect resolution by experiment_id (with _dynamic or _baseline suffix)."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+    eval_id = "eval_inspect_pair_100"
+    exp_id = f"{eval_id}_dynamic"
+
+    record = ExperimentRecord(
+        evaluation_id=eval_id,
+        experiment_id=exp_id,
+        bug_id="B001",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=1200,
+        total_tokens=300,
+        token_usage_available=True,
+        total_experiment_time_ms=800.0,
+    )
+    logger.log_experiment(record)
+
+    # 1. Lookup by experiment_id directly
+    summary = logger.get_evaluation_summary(exp_id)
+    assert summary is not None
+    assert summary["evaluation_id"] == eval_id
+    assert summary["dynamic"]["experiment_id"] == exp_id
+
+    # 2. Lookup events by experiment_id
+    events = logger.get_evaluation_events(exp_id)
+    assert isinstance(events, list)
+
+
+def test_inspect_missing_and_invalid_artifacts():
+    """Verify that inspecting an invalid or missing experiment ID returns 404 cleanly."""
+    resp = client.get("/evaluation/experiments/non_existent_id_9999/summary")
+    assert resp.status_code == 404
+    assert "No evaluation summary found" in resp.json()["detail"]
+
+    resp_ev = client.get("/evaluation/experiments/non_existent_id_9999/events")
+    assert resp_ev.status_code == 200
+    assert resp_ev.json() == []
+
+
+def test_inspect_normalized_paired_files(tmp_path):
+    """Verify that if baseline.json and dynamic.json exist on disk, summary is normalized with both."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+    eval_id = "eval_dual_test_01"
+
+    b_rec = ExperimentRecord(
+        evaluation_id=eval_id,
+        experiment_id=f"{eval_id}_baseline",
+        bug_id="B001",
+        mode="baseline",
+        language="python",
+        model="openrouter/free",
+        context_chars=10000,
+        total_tokens=500,
+        token_usage_available=True,
+    )
+    d_rec = ExperimentRecord(
+        evaluation_id=eval_id,
+        experiment_id=f"{eval_id}_dynamic",
+        bug_id="B001",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=2000,
+        total_tokens=700,
+        token_usage_available=True,
+    )
+    logger.log_experiment(b_rec)
+    logger.log_experiment(d_rec)
+
+    summary = logger.get_evaluation_summary(eval_id)
+    assert summary is not None
+    assert summary["baseline"] is not None
+    assert summary["dynamic"] is not None
+    assert summary["metrics"]["context_reduction_percent"] == 80.0
+    # Dynamic used 700 tokens vs 500 baseline -> reduction is ((500-700)/500)*100 = -40.0%
+    assert summary["metrics"]["token_reduction_percent"] == -40.0
+
+

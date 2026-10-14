@@ -219,50 +219,138 @@ class ExperimentLogger:
             with open(eval_dir / mode_file, mode="w", encoding="utf-8") as f:
                 json.dump(raw_dict, f, indent=2)
 
-            # 3. Create or update summary.json for single-run mode
+            # 3. Create or update summary.json
             summary_file = eval_dir / "summary.json"
-            if not summary_file.exists() or record.mode == "dynamic":
-                summary_data = {
-                    "evaluation_id": record.evaluation_id,
-                    "experiment_id": record.experiment_id,
-                    "bug_id": record.bug_id,
-                    "mode": record.mode,
-                    "language": record.language,
-                    "model": record.model,
-                    "status": record.status,
-                    "stop_reason": record.stop_reason,
-                    "timestamp": record.timestamp,
-                    "context_chars": record.context_chars,
-                    "tokens": {
-                        "input_tokens": record.input_tokens,
-                        "output_tokens": record.output_tokens,
-                        "total_tokens": record.total_tokens,
-                        "token_usage_available": record.token_usage_available,
-                        "curator_total_tokens": record.curator_total_tokens,
-                        "debugger_total_tokens": record.debugger_total_tokens,
-                    },
-                    "timing_ms": {
-                        "llm_time_ms": record.llm_time_ms,
-                        "mcp_query_time_ms": record.mcp_query_time_ms,
-                        "mcp_transport_time_ms": record.mcp_transport_time_ms,
-                        "mcp_total_time_ms": record.mcp_total_time_ms,
-                        "total_experiment_time_ms": record.total_experiment_time_ms,
-                    },
-                    "effectiveness": {
-                        "root_cause_identified": record.root_cause_identified,
-                        "fix_generated": record.fix_generated,
-                        "fix_correct": record.fix_correct,
-                        "re_execution_passed": record.re_execution_passed,
-                    },
-                    "traceability": {
-                        "evaluation_dir": str(eval_dir),
-                        "events_file": str(eval_dir / "events.jsonl"),
-                        "record_file": str(eval_dir / mode_file),
-                        "csv_dataset": str(self.csv_path),
-                    },
-                }
+            baseline_file = eval_dir / "baseline.json"
+            dynamic_file = eval_dir / "dynamic.json"
+
+            existing_summary = None
+            if summary_file.exists():
+                try:
+                    with open(summary_file, mode="r", encoding="utf-8") as sf:
+                        existing_summary = json.load(sf)
+                except Exception:
+                    existing_summary = None
+
+            # If existing summary has paired structure, preserve and update it
+            if existing_summary and ("baseline" in existing_summary or "dynamic" in existing_summary):
+                if record.mode == "baseline":
+                    existing_summary["baseline"] = raw_dict
+                else:
+                    existing_summary["dynamic"] = raw_dict
+
+                if existing_summary.get("baseline") and existing_summary.get("dynamic"):
+                    b_chars = existing_summary["baseline"].get("context_chars", 0)
+                    d_chars = existing_summary["dynamic"].get("context_chars", 0)
+                    if b_chars > 0 and existing_summary["dynamic"].get("status") == "completed":
+                        existing_summary.setdefault("metrics", {})["context_reduction_percent"] = round(
+                            ((b_chars - d_chars) / b_chars) * 100.0, 2
+                        )
                 with open(summary_file, mode="w", encoding="utf-8") as f:
-                    json.dump(summary_data, f, indent=2)
+                    json.dump(existing_summary, f, indent=2)
+            else:
+                # Check if the companion mode file already exists in eval_dir to produce a paired summary
+                other_mode_file = dynamic_file if record.mode == "baseline" else baseline_file
+                if other_mode_file.exists():
+                    try:
+                        with open(other_mode_file, mode="r", encoding="utf-8") as omf:
+                            other_data = json.load(omf)
+                        base_rec = raw_dict if record.mode == "baseline" else other_data
+                        dyn_rec = other_data if record.mode == "baseline" else raw_dict
+                        b_chars = base_rec.get("context_chars", 0)
+                        d_chars = dyn_rec.get("context_chars", 0)
+                        ctx_reduct = (
+                            round(((b_chars - d_chars) / b_chars) * 100.0, 2)
+                            if b_chars > 0 and dyn_rec.get("status") == "completed"
+                            else None
+                        )
+
+                        b_tok = base_rec.get("total_tokens")
+                        d_tok = dyn_rec.get("total_tokens")
+                        if (
+                            base_rec.get("token_usage_available")
+                            and dyn_rec.get("token_usage_available")
+                            and b_tok is not None
+                            and b_tok > 0
+                            and d_tok is not None
+                        ):
+                            tok_reduct = round(((b_tok - d_tok) / b_tok) * 100.0, 2)
+                        else:
+                            tok_reduct = None
+
+                        b_time = base_rec.get("total_experiment_time_ms", 0.0)
+                        d_time = dyn_rec.get("total_experiment_time_ms", 0.0)
+
+                        paired_payload = {
+                            "evaluation_id": record.evaluation_id,
+                            "bug_id": record.bug_id,
+                            "language": record.language,
+                            "model": record.model,
+                            "status": record.status,
+                            "timestamp": record.timestamp,
+                            "metrics": {
+                                "context_reduction_percent": ctx_reduct,
+                                "token_reduction_percent": tok_reduct,
+                                "time_difference_ms": round(d_time - b_time, 2),
+                            },
+                            "baseline": base_rec,
+                            "dynamic": dyn_rec,
+                            "traceability": {
+                                "evaluation_dir": str(eval_dir),
+                                "events_file": str(eval_dir / "events.jsonl"),
+                                "summary_file": str(summary_file),
+                                "baseline_file": str(baseline_file),
+                                "dynamic_file": str(dynamic_file),
+                                "csv_dataset": str(self.csv_path),
+                            },
+                        }
+                        with open(summary_file, mode="w", encoding="utf-8") as f:
+                            json.dump(paired_payload, f, indent=2)
+                    except Exception:
+                        pass
+                else:
+                    # Single mode summary
+                    summary_data = {
+                        "evaluation_id": record.evaluation_id,
+                        "experiment_id": record.experiment_id,
+                        "bug_id": record.bug_id,
+                        "mode": record.mode,
+                        "language": record.language,
+                        "model": record.model,
+                        "status": record.status,
+                        "stop_reason": record.stop_reason,
+                        "timestamp": record.timestamp,
+                        "context_chars": record.context_chars,
+                        "tokens": {
+                            "input_tokens": record.input_tokens,
+                            "output_tokens": record.output_tokens,
+                            "total_tokens": record.total_tokens,
+                            "token_usage_available": record.token_usage_available,
+                            "curator_total_tokens": record.curator_total_tokens,
+                            "debugger_total_tokens": record.debugger_total_tokens,
+                        },
+                        "timing_ms": {
+                            "llm_time_ms": record.llm_time_ms,
+                            "mcp_query_time_ms": record.mcp_query_time_ms,
+                            "mcp_transport_time_ms": record.mcp_transport_time_ms,
+                            "mcp_total_time_ms": record.mcp_total_time_ms,
+                            "total_experiment_time_ms": record.total_experiment_time_ms,
+                        },
+                        "effectiveness": {
+                            "root_cause_identified": record.root_cause_identified,
+                            "fix_generated": record.fix_generated,
+                            "fix_correct": record.fix_correct,
+                            "re_execution_passed": record.re_execution_passed,
+                        },
+                        "traceability": {
+                            "evaluation_dir": str(eval_dir),
+                            "events_file": str(eval_dir / "events.jsonl"),
+                            "record_file": str(eval_dir / mode_file),
+                            "csv_dataset": str(self.csv_path),
+                        },
+                    }
+                    with open(summary_file, mode="w", encoding="utf-8") as f:
+                        json.dump(summary_data, f, indent=2)
 
     def log_paired_summary(self, comparison: ComparisonResult) -> dict[str, Any]:
         """
@@ -382,56 +470,200 @@ class ExperimentLogger:
 
         return list(reversed(records))[:limit]
 
+    def _resolve_evaluation_dir(self, identifier: str) -> tuple[str, Optional[Path]]:
+        """
+        Resolve either an evaluation_id or experiment_id to (evaluation_id, eval_dir).
+        """
+        if not identifier:
+            return "", None
+
+        clean_id = identifier.strip()
+
+        # 1. Direct directory match in data/m8/experiments/<clean_id>/
+        direct_dir = self.experiments_dir / clean_id
+        if direct_dir.exists() and direct_dir.is_dir():
+            return clean_id, direct_dir
+
+        # Check if swapping prefix exp_ <-> eval_ finds a directory
+        if clean_id.startswith("exp_"):
+            alt_id = "eval_" + clean_id[4:]
+            alt_dir = self.experiments_dir / alt_id
+            if alt_dir.exists() and alt_dir.is_dir():
+                return alt_id, alt_dir
+        elif clean_id.startswith("eval_"):
+            alt_id = "exp_" + clean_id[5:]
+            alt_dir = self.experiments_dir / alt_id
+            if alt_dir.exists() and alt_dir.is_dir():
+                return alt_id, alt_dir
+
+        # 2. Check CSV records for matching evaluation_id or experiment_id
+        for r in self.get_experiments(limit=500):
+            if r.experiment_id == clean_id or r.evaluation_id == clean_id:
+                target_eval_id = r.evaluation_id or clean_id
+                target_dir = self.experiments_dir / target_eval_id
+                return target_eval_id, target_dir
+
+        # 3. Check if clean_id has _baseline, _dynamic, or _paired suffix
+        for suffix in ("_baseline", "_dynamic", "_paired"):
+            if clean_id.endswith(suffix):
+                candidate_id = clean_id[:-len(suffix)]
+                candidates = [candidate_id]
+                if candidate_id.startswith("exp_"):
+                    candidates.append("eval_" + candidate_id[4:])
+                elif candidate_id.startswith("eval_"):
+                    candidates.append("exp_" + candidate_id[5:])
+                for cid in candidates:
+                    candidate_dir = self.experiments_dir / cid
+                    if candidate_dir.exists() and candidate_dir.is_dir():
+                        return cid, candidate_dir
+
+        return clean_id, self.experiments_dir / clean_id
+
     def get_evaluation_summary(self, evaluation_id: str) -> Optional[dict[str, Any]]:
         """
-        Retrieve summary artifact for a given evaluation_id.
+        Retrieve summary artifact for a given evaluation_id or experiment_id.
+        Standardizes output so that 'baseline' and 'dynamic' records are populated
+        from summary.json, individual mode files, or logged CSV records.
         """
-        eval_summary_path = self.experiments_dir / evaluation_id / "summary.json"
-        if eval_summary_path.exists():
+        target_eval_id, eval_dir = self._resolve_evaluation_dir(evaluation_id)
+        if not target_eval_id:
+            return None
+
+        summary_data: Optional[dict[str, Any]] = None
+        eval_summary_path = eval_dir / "summary.json" if eval_dir else None
+
+        if eval_summary_path and eval_summary_path.exists():
             try:
                 with open(eval_summary_path, mode="r", encoding="utf-8") as f:
-                    return json.load(f)
+                    summary_data = json.load(f)
+            except Exception:
+                summary_data = None
+
+        # Check for mode-specific JSON artifacts in the evaluation directory
+        baseline_file = eval_dir / "baseline.json" if eval_dir else None
+        dynamic_file = eval_dir / "dynamic.json" if eval_dir else None
+
+        file_baseline: Optional[dict[str, Any]] = None
+        file_dynamic: Optional[dict[str, Any]] = None
+
+        if baseline_file and baseline_file.exists():
+            try:
+                with open(baseline_file, mode="r", encoding="utf-8") as bf:
+                    file_baseline = json.load(bf)
             except Exception:
                 pass
 
-        # Fallback: construct from CSV records
-        matching = [r for r in self.get_experiments(limit=500) if r.evaluation_id == evaluation_id]
-        if not matching:
+        if dynamic_file and dynamic_file.exists():
+            try:
+                with open(dynamic_file, mode="r", encoding="utf-8") as df:
+                    file_dynamic = json.load(df)
+            except Exception:
+                pass
+
+        # Check CSV records
+        matching = [
+            r for r in self.get_experiments(limit=500)
+            if r.evaluation_id == target_eval_id or r.experiment_id == evaluation_id or r.evaluation_id == evaluation_id
+        ]
+        csv_baseline = next((r.model_dump() for r in matching if r.mode == "baseline"), None)
+        csv_dynamic = next((r.model_dump() for r in matching if r.mode == "dynamic"), None)
+
+        baseline_record = (
+            (summary_data.get("baseline") if isinstance(summary_data, dict) and summary_data.get("baseline") else None)
+            or file_baseline
+            or csv_baseline
+        )
+        dynamic_record = (
+            (summary_data.get("dynamic") if isinstance(summary_data, dict) and summary_data.get("dynamic") else None)
+            or file_dynamic
+            or csv_dynamic
+        )
+
+        # If summary_data was a single-run summary, assign to corresponding mode if missing
+        if isinstance(summary_data, dict) and not summary_data.get("baseline") and not summary_data.get("dynamic"):
+            mode = summary_data.get("mode")
+            if mode == "baseline" and not baseline_record:
+                baseline_record = summary_data
+            elif mode == "dynamic" and not dynamic_record:
+                dynamic_record = summary_data
+
+        # If neither summary.json nor mode records exist, cannot produce summary
+        if not summary_data and not baseline_record and not dynamic_record:
             return None
 
-        baseline_rec = next((r for r in matching if r.mode == "baseline"), None)
-        dynamic_rec = next((r for r in matching if r.mode == "dynamic"), None)
-        primary = dynamic_rec or baseline_rec or matching[0]
+        primary = dynamic_record or baseline_record or (summary_data if isinstance(summary_data, dict) else {})
+        bug_id = primary.get("bug_id", "")
+        language = primary.get("language", "")
+        model = primary.get("model", "")
+        status = primary.get("status", "completed")
+        timestamp = primary.get("timestamp", "")
+
+        # Compute reduction metrics if both exist
+        ctx_reduct = None
+        tok_reduct = None
+        time_diff = None
+
+        if baseline_record and dynamic_record:
+            b_chars = baseline_record.get("context_chars") or baseline_record.get("context_size") or 0
+            d_chars = dynamic_record.get("context_chars") or dynamic_record.get("context_size") or 0
+            if b_chars > 0 and dynamic_record.get("status") == "completed":
+                ctx_reduct = round(((b_chars - d_chars) / b_chars) * 100.0, 2)
+
+            b_tok = baseline_record.get("total_tokens")
+            d_tok = dynamic_record.get("total_tokens")
+            b_avail = baseline_record.get("token_usage_available", False)
+            d_avail = dynamic_record.get("token_usage_available", False)
+            if b_avail and d_avail and b_tok is not None and b_tok > 0 and d_tok is not None:
+                tok_reduct = round(((b_tok - d_tok) / b_tok) * 100.0, 2)
+
+            b_time = baseline_record.get("total_experiment_time_ms") or baseline_record.get("total_time_ms") or 0.0
+            d_time = dynamic_record.get("total_experiment_time_ms") or dynamic_record.get("total_time_ms") or 0.0
+            time_diff = round(d_time - b_time, 2)
+        elif isinstance(summary_data, dict) and "metrics" in summary_data:
+            metrics_dict = summary_data.get("metrics") or {}
+            ctx_reduct = metrics_dict.get("context_reduction_percent")
+            tok_reduct = metrics_dict.get("token_reduction_percent")
+            time_diff = metrics_dict.get("time_difference_ms")
 
         return {
-            "evaluation_id": evaluation_id,
-            "bug_id": primary.bug_id,
-            "language": primary.language,
-            "model": primary.model,
-            "status": primary.status,
-            "timestamp": primary.timestamp,
-            "baseline": baseline_rec.model_dump() if baseline_rec else None,
-            "dynamic": dynamic_rec.model_dump() if dynamic_rec else None,
+            "evaluation_id": target_eval_id,
+            "bug_id": bug_id,
+            "language": language,
+            "model": model,
+            "status": status,
+            "timestamp": timestamp,
+            "metrics": {
+                "context_reduction_percent": ctx_reduct,
+                "token_reduction_percent": tok_reduct,
+                "time_difference_ms": time_diff,
+            },
+            "baseline": baseline_record,
+            "dynamic": dynamic_record,
             "traceability": {
-                "evaluation_dir": str(self.experiments_dir / evaluation_id),
+                "evaluation_dir": str(eval_dir) if eval_dir else "",
+                "events_file": str(eval_dir / "events.jsonl") if eval_dir else "",
+                "summary_file": str(eval_summary_path) if eval_summary_path else "",
                 "csv_dataset": str(self.csv_path),
             },
         }
 
     def get_evaluation_events(self, evaluation_id: str) -> list[dict[str, Any]]:
         """
-        Retrieve structured lifecycle events for a given evaluation_id.
+        Retrieve structured lifecycle events for a given evaluation_id or experiment_id.
         """
-        eval_events_path = self.experiments_dir / evaluation_id / "events.jsonl"
-        if eval_events_path.exists():
+        target_eval_id, eval_dir = self._resolve_evaluation_dir(evaluation_id)
+        clean_target = target_eval_id or evaluation_id
+
+        if eval_dir and (eval_dir / "events.jsonl").exists():
             events = []
             try:
-                with open(eval_events_path, mode="r", encoding="utf-8") as f:
+                with open(eval_dir / "events.jsonl", mode="r", encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         if line:
                             events.append(json.loads(line))
-                return events
+                if events:
+                    return events
             except Exception:
                 pass
 
@@ -444,7 +676,11 @@ class ExperimentLogger:
                         line = line.strip()
                         if line:
                             obj = json.loads(line)
-                            if obj.get("evaluation_id") == evaluation_id:
+                            if (
+                                obj.get("evaluation_id") == clean_target
+                                or obj.get("evaluation_id") == evaluation_id
+                                or obj.get("experiment_id") == evaluation_id
+                            ):
                                 matched.append(obj)
                 return matched
             except Exception:
