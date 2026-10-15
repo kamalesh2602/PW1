@@ -469,6 +469,18 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             </div>
 
             <div className="kpi-card">
+              <span className="kpi-label">Total Token Impact</span>
+              <div className={`kpi-value ${comparisonResult.token_reduction_percent > 0 ? 'text-reduction' : comparisonResult.token_reduction_percent < 0 ? 'text-increase' : ''}`}>
+                {formatReduction(comparisonResult.token_reduction_percent, true)}
+              </div>
+              <span className="kpi-sub">
+                {comparisonResult.dynamic.token_usage_available && comparisonResult.baseline.token_usage_available
+                  ? `${(comparisonResult.dynamic.total_tokens ?? 0).toLocaleString()} vs ${(comparisonResult.baseline.total_tokens ?? 0).toLocaleString()} total tokens`
+                  : 'Provider metadata unavailable'}
+              </span>
+            </div>
+
+            <div className="kpi-card">
               <span className="kpi-label">LLM Input Tokens</span>
               <div className="kpi-value">
                 {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.input_tokens !== null
@@ -483,21 +495,15 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
             </div>
 
             <div className="kpi-card">
-              <span className="kpi-label">Execution Overhead</span>
-              <div className="kpi-value text-accent">
-                {comparisonResult.dynamic.llm_calls} LLM / {comparisonResult.dynamic.mcp_calls} MCP
-              </div>
-              <span className="kpi-sub">
-                Baseline: {comparisonResult.baseline.llm_calls} LLM / 0 MCP calls
-              </span>
-            </div>
-
-            <div className="kpi-card">
               <span className="kpi-label">Debugging Effectiveness</span>
               <div className="kpi-value">
-                {comparisonResult.dynamic.fix_correct ? (
+                {comparisonResult.dynamic.fix_correct === true ? (
                   <span className="text-success flex-row items-center gap-1">
                     <CheckCircle2 size={16} /> Validated
+                  </span>
+                ) : comparisonResult.dynamic.fix_correct === false ? (
+                  <span className="text-error flex-row items-center gap-1">
+                    <XCircle size={16} /> Failed
                   </span>
                 ) : comparisonResult.dynamic.re_execution_passed ? (
                   <span className="text-warning flex-row items-center gap-1">
@@ -545,7 +551,10 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   <td>Run execution status</td>
                 </tr>
                 <tr>
-                  <td className="metric-name">Context Size (characters)</td>
+                  <td className="metric-name">
+                    Context Size (characters)
+                    <span className="block text-xs text-muted font-normal">Payload chars provided to diagnosis prompt</span>
+                  </td>
                   <td>{(comparisonResult.baseline.context_chars ?? comparisonResult.baseline.context_size ?? 0).toLocaleString()} chars</td>
                   <td>{(comparisonResult.dynamic.context_chars ?? comparisonResult.dynamic.context_size ?? 0).toLocaleString()} chars</td>
                   <td className={comparisonResult.context_reduction_percent > 0 ? 'text-reduction' : comparisonResult.context_reduction_percent < 0 ? 'text-increase' : ''}>
@@ -553,7 +562,10 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   </td>
                 </tr>
                 <tr>
-                  <td className="metric-name">Actual LLM Input Tokens</td>
+                  <td className="metric-name">
+                    Actual LLM Input Tokens
+                    <span className="block text-xs text-muted font-normal">Prompt tokens sent to provider</span>
+                  </td>
                   <td>
                     {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.input_tokens !== null
                       ? `${comparisonResult.baseline.input_tokens.toLocaleString()} tokens`
@@ -561,16 +573,44 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   </td>
                   <td>
                     {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.input_tokens !== null
-                      ? `${comparisonResult.dynamic.input_tokens.toLocaleString()} tokens`
+                      ? `${comparisonResult.dynamic.input_tokens.toLocaleString()} tokens (Curator: ${comparisonResult.dynamic.curator_input_tokens ?? 0}, Debugger: ${comparisonResult.dynamic.debugger_input_tokens ?? 0})`
                       : 'N/A — provider metadata unavailable'}
                   </td>
-                  <td>Prompt tokens provided to LLM</td>
+                  <td>
+                    {comparisonResult.baseline.token_usage_available && comparisonResult.dynamic.token_usage_available && comparisonResult.baseline.input_tokens && comparisonResult.dynamic.input_tokens
+                      ? formatReduction(((comparisonResult.baseline.input_tokens - comparisonResult.dynamic.input_tokens) / comparisonResult.baseline.input_tokens) * 100, true)
+                      : 'Prompt tokens sent to provider'}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="metric-name">Total LLM Tokens</td>
+                  <td className="metric-name">
+                    Actual LLM Output Tokens
+                    <span className="block text-xs text-muted font-normal">Completion tokens generated by provider</span>
+                  </td>
+                  <td>
+                    {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.output_tokens !== null
+                      ? `${comparisonResult.baseline.output_tokens.toLocaleString()} tokens`
+                      : 'N/A — provider metadata unavailable'}
+                  </td>
+                  <td>
+                    {comparisonResult.dynamic.token_usage_available && comparisonResult.dynamic.output_tokens !== null
+                      ? `${comparisonResult.dynamic.output_tokens.toLocaleString()} tokens (Curator: ${comparisonResult.dynamic.curator_output_tokens ?? 0}, Debugger: ${comparisonResult.dynamic.debugger_output_tokens ?? 0})`
+                      : 'N/A — provider metadata unavailable'}
+                  </td>
+                  <td>
+                    {comparisonResult.baseline.token_usage_available && comparisonResult.dynamic.token_usage_available && comparisonResult.baseline.output_tokens !== null && comparisonResult.dynamic.output_tokens !== null
+                      ? `Dynamic: +${Math.max(0, (comparisonResult.dynamic.output_tokens - comparisonResult.baseline.output_tokens)).toLocaleString()} tokens`
+                      : 'Completion tokens generated'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="metric-name">
+                    Total LLM Tokens
+                    <span className="block text-xs text-muted font-normal">Aggregate provider tokens (Input + Output)</span>
+                  </td>
                   <td>
                     {comparisonResult.baseline.token_usage_available && comparisonResult.baseline.total_tokens !== null
-                      ? `${comparisonResult.baseline.total_tokens.toLocaleString()} tokens`
+                      ? `${comparisonResult.baseline.total_tokens.toLocaleString()} tokens (In: ${comparisonResult.baseline.input_tokens ?? 0} + Out: ${comparisonResult.baseline.output_tokens ?? 0})`
                       : 'N/A — provider metadata unavailable'}
                   </td>
                   <td>
@@ -662,20 +702,24 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                 <tr>
                   <td className="metric-name">Fix Correct</td>
                   <td>
-                    {comparisonResult.baseline.fix_correct ? (
+                    {comparisonResult.baseline.fix_correct === true ? (
                       <span className="outcome-pill success"><CheckCircle2 size={12} /> Validated</span>
+                    ) : comparisonResult.baseline.fix_correct === false ? (
+                      <span className="outcome-pill failure"><XCircle size={12} /> Failed</span>
                     ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> Not Validated</span>
+                      <span className="outcome-pill neutral">Not Validated</span>
                     )}
                   </td>
                   <td>
-                    {comparisonResult.dynamic.fix_correct ? (
+                    {comparisonResult.dynamic.fix_correct === true ? (
                       <span className="outcome-pill success"><CheckCircle2 size={12} /> Validated</span>
+                    ) : comparisonResult.dynamic.fix_correct === false ? (
+                      <span className="outcome-pill failure"><XCircle size={12} /> Failed</span>
                     ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> Not Validated</span>
+                      <span className="outcome-pill neutral">Not Validated</span>
                     )}
                   </td>
-                  <td>Semantic correctness validation</td>
+                  <td>Deterministic semantic check</td>
                 </tr>
               </tbody>
             </table>
@@ -829,6 +873,14 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                                 </span>
                               </div>
                               <div className="metric-row">
+                                <span>Actual Output Tokens:</span>
+                                <span className="font-mono">
+                                  {baseData.token_usage_available && baseData.output_tokens !== null
+                                    ? `${baseData.output_tokens.toLocaleString()} tokens`
+                                    : 'N/A — token usage unavailable'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
                                 <span>Total Tokens:</span>
                                 <span className="font-mono">
                                   {baseData.token_usage_available && baseData.total_tokens !== null
@@ -858,8 +910,14 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                               </div>
                               <div className="metric-row">
                                 <span>Fix Correct:</span>
-                                <span className={baseData.fix_correct ? 'text-success font-semibold' : 'text-muted'}>
-                                  {baseData.fix_correct ? 'Validated' : 'Not Validated'}
+                                <span className={
+                                  baseData.fix_correct === true
+                                    ? 'text-success font-semibold'
+                                    : baseData.fix_correct === false
+                                    ? 'text-error font-semibold'
+                                    : 'text-muted'
+                                }>
+                                  {baseData.fix_correct === true ? 'Validated' : baseData.fix_correct === false ? 'Failed' : 'Not Validated'}
                                 </span>
                               </div>
                               <div className="metric-row">
@@ -889,7 +947,15 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                                 <span>Actual Input Tokens:</span>
                                 <span className="font-mono">
                                   {dynData.token_usage_available && dynData.input_tokens !== null
-                                    ? `${dynData.input_tokens.toLocaleString()} tokens`
+                                    ? `${dynData.input_tokens.toLocaleString()} tokens (Curator: ${dynData.curator_input_tokens ?? 0}, Debugger: ${dynData.debugger_input_tokens ?? 0})`
+                                    : 'N/A — token usage unavailable'}
+                                </span>
+                              </div>
+                              <div className="metric-row">
+                                <span>Actual Output Tokens:</span>
+                                <span className="font-mono">
+                                  {dynData.token_usage_available && dynData.output_tokens !== null
+                                    ? `${dynData.output_tokens.toLocaleString()} tokens (Curator: ${dynData.curator_output_tokens ?? 0}, Debugger: ${dynData.debugger_output_tokens ?? 0})`
                                     : 'N/A — token usage unavailable'}
                                 </span>
                               </div>
@@ -923,8 +989,14 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                               </div>
                               <div className="metric-row">
                                 <span>Fix Correct:</span>
-                                <span className={dynData.fix_correct ? 'text-success font-semibold' : 'text-muted'}>
-                                  {dynData.fix_correct ? 'Validated' : 'Not Validated'}
+                                <span className={
+                                  dynData.fix_correct === true
+                                    ? 'text-success font-semibold'
+                                    : dynData.fix_correct === false
+                                    ? 'text-error font-semibold'
+                                    : 'text-muted'
+                                }>
+                                  {dynData.fix_correct === true ? 'Validated' : dynData.fix_correct === false ? 'Failed' : 'Not Validated'}
                                 </span>
                               </div>
                               <div className="metric-row">
@@ -1057,10 +1129,12 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                     <td>{exp.mcp_calls}</td>
                     <td>{(exp.total_experiment_time_ms || exp.total_time_ms || 0).toFixed(0)} ms</td>
                     <td>
-                      {exp.fix_correct ? (
+                      {exp.fix_correct === true ? (
                         <span className="text-success text-xs font-semibold">Validated</span>
+                      ) : exp.fix_correct === false ? (
+                        <span className="text-error text-xs font-semibold">Failed</span>
                       ) : (
-                        <span className="text-muted text-xs">No</span>
+                        <span className="text-muted text-xs">Not Validated</span>
                       )}
                     </td>
                     <td className="text-xs text-muted">

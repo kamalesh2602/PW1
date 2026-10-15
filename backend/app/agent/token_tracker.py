@@ -179,7 +179,6 @@ class TokenUsageCallback(BaseCallbackHandler):
         self.output_tokens: int = 0
         self.total_tokens: int = 0
         self.calls: int = 0
-        self.usage_available: bool = False
         self.records: list[dict[str, Any]] = []
 
     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
@@ -187,7 +186,6 @@ class TokenUsageCallback(BaseCallbackHandler):
         res = extract_token_usage(response)
 
         if res.available:
-            self.usage_available = True
             call_input = res.input_tokens or 0
             call_output = res.output_tokens or 0
             call_total = res.total_tokens or (call_input + call_output)
@@ -209,6 +207,13 @@ class TokenUsageCallback(BaseCallbackHandler):
         })
 
     @property
+    def usage_available(self) -> bool:
+        """True only if at least one call was made and all calls recorded valid provider usage."""
+        if self.calls == 0:
+            return False
+        return len(self.records) == self.calls and all(r.get("available", False) for r in self.records)
+
+    @property
     def safe_input_tokens(self) -> Optional[int]:
         return self.input_tokens if self.usage_available else None
 
@@ -225,5 +230,4 @@ class TokenUsageCallback(BaseCallbackHandler):
         self.output_tokens = 0
         self.total_tokens = 0
         self.calls = 0
-        self.usage_available = False
         self.records = []

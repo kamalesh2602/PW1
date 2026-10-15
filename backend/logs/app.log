@@ -837,3 +837,295 @@ ValueError: "RetrievalDecision" object has no field "execution_id"
 2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
 2026-10-14 23:43:54 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
 2026-10-14 23:43:54 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-15 22:03:54 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 115, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:03:54 [INFO] [app.curator]: curation_summary: execution_id=3188f194-7fb5-4a4b-9aa8-0f7b2f891313 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:03:54 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 243, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:03:57 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-15 22:03:57 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:03:57 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:03:57 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-15 22:03:57 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:03:57 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-15 22:14:01 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:14:01 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=3 context_size=718 time_spent=0.00s stop_reason=budget_limit_reached
+2026-10-15 22:14:01 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:14:01 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=llm_rate_limit_exceeded
+2026-10-15 22:27:56 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:27:57 [INFO] [app.curator]: curation_summary: execution_id=48b112f2-1d98-4414-90a4-e71461f71ff7 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:27:57 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:28:00 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-15 22:28:00 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:28:00 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:28:00 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-15 22:28:00 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:28:00 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-15 22:34:32 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:34:32 [INFO] [app.curator]: curation_summary: execution_id=2cd04e39-423a-47cf-aa4b-a0f9fe7a9129 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:34:32 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:34:36 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-15 22:34:36 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:34:36 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:34:36 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-15 22:34:36 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:34:36 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-15 22:50:24 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:50:24 [INFO] [app.curator]: curation_summary: execution_id=75d562b5-7304-4189-9273-29c4b2fb3638 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:50:24 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-15 22:50:27 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-15 22:50:27 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:50:27 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:50:27 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-15 22:50:27 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-15 22:50:27 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-15 22:51:43 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:51:43 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=3 context_size=718 time_spent=0.00s stop_reason=budget_limit_reached
+2026-10-15 22:51:43 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-15 22:51:43 [WARNING] [app.curator]: LLM rate limit exceeded during curation: Exception('OpenRouter 429')
+2026-10-15 22:51:43 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=llm_rate_limit_exceeded
+2026-10-15 22:52:37 [INFO] [app.curator]: curation_summary: execution_id=be409961-57c0-43ab-aedd-151057d873f6 mcp_calls=0 context_size=2 time_spent=2.70s stop_reason=mcp_transport_error: unhandled errors in a TaskGroup (1 sub-exception)
+2026-10-15 22:52:47 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-15 22:52:48 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-15 22:52:51 [INFO] [app.curator]: curation_summary: execution_id=8e12321f-f93b-4303-9759-7a7ce921260e mcp_calls=0 context_size=2 time_spent=2.31s stop_reason=mcp_transport_error: unhandled errors in a TaskGroup (1 sub-exception)
+2026-10-15 22:52:57 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-15 22:52:57 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-15 22:52:57 [WARNING] [app.fix_route]: Fix request trace not found: Execution trace for non-existent-id-12345 not found.

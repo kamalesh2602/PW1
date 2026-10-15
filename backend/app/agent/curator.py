@@ -3,7 +3,7 @@ import logging
 import os
 import time
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.agent.llm import get_llm
 from app.agent.mcp_client import get_debugging_tools
@@ -21,11 +21,25 @@ class ToolCall(BaseModel):
     tool_name: str = Field(description="Name of the MCP tool to call")
     tool_args: dict[str, Any] = Field(default_factory=dict, description="Arguments for the tool")
 
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_tool_args(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            args = data.get("tool_args")
+            if isinstance(args, str):
+                try:
+                    data["tool_args"] = json.loads(args)
+                except Exception:
+                    data["tool_args"] = {}
+            elif args is None:
+                data["tool_args"] = {}
+        return data
+
 class RetrievalDecision(BaseModel):
     tool_calls: list[ToolCall] = Field(default_factory=list, description="List of tools to call next. Empty if stopping.")
-    reason: str = Field(description="Why this information is needed.")
-    is_sufficient: bool = Field(description="True if enough context is gathered to diagnose the bug.")
-    direction: str = Field(description="Investigation direction: 'forward', 'backward', 'stack', 'path', or 'initial'.")
+    reason: str = Field(default="", description="Why this information is needed.")
+    is_sufficient: bool = Field(default=False, description="True if enough context is gathered to diagnose the bug.")
+    direction: str = Field(default="initial", description="Investigation direction: 'forward', 'backward', 'stack', 'path', or 'initial'.")
 
 class CurationResult(BaseModel):
     context: str
@@ -347,6 +361,11 @@ CRITICAL STOPPING RULES:
                 telemetry["llm_successes"] += 1
                 telemetry["llm_time"] += (time.time() - llm_start)
                 
+                if decision is None:
+                    app_logger.warning("curation_decision_none: execution_id=%s", execution_id)
+                    telemetry["stop_reason"] = "no_further_context_available"
+                    break
+
                 duration_ms = round((time.time() - llm_start) * 1000.0, 2)
                 logger.info(
                     f"[llm_decision] step={telemetry['mcp_calls'] + 1} direction={decision.direction} is_sufficient={decision.is_sufficient}"
@@ -361,10 +380,10 @@ CRITICAL STOPPING RULES:
                 error_msg = repr(e)
                 if "429" in error_msg or "Too Many Requests" in error_msg or "Rate limit exceeded" in error_msg or "free-models-per-day" in error_msg:
                     telemetry["stop_reason"] = "llm_rate_limit_exceeded"
-                    logger.warning(f"LLM rate limit exceeded during curation: {error_msg}")
+                    app_logger.warning("LLM rate limit exceeded during curation: %s", error_msg)
                 else:
                     telemetry["stop_reason"] = "curator_error"
-                    logger.warning(f"LLM error during curation: {error_msg}")
+                    app_logger.warning("LLM error during curation: %s", error_msg, exc_info=True)
                 break
 
             telemetry["investigation_directions"].add(decision.direction)

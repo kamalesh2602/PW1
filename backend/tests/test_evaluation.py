@@ -975,4 +975,92 @@ def test_api_clear_results_endpoint_and_running_guard():
         assert resp_alias.json()["success"] is True
 
 
+def test_semantic_correctness_validation_tri_state():
+    """Verify _validate_semantic_correctness returns True, False, or None (Not Validated)."""
+    service = EvaluationService()
+
+    # 1. B001 Valid Fix: calculate(2) == 5.0 and process() returns 5.0 -> True
+    b001_good_code = """def calculate(x):
+    return 10 / x
+
+def process():
+    value = 2
+    return calculate(value)
+"""
+    assert service._validate_semantic_correctness("B001", b001_good_code, ExecutionLanguage.PYTHON) is True
+
+    # 2. B001 Buggy Code: divisor is 0, ZeroDivisionError -> False
+    b001_bad_code = """def calculate(x):
+    return 10 / x
+
+def process():
+    value = 0
+    return calculate(value)
+"""
+    assert service._validate_semantic_correctness("B001", b001_bad_code, ExecutionLanguage.PYTHON) is False
+
+    # 3. Empty or whitespace code -> False
+    assert service._validate_semantic_correctness("B001", "", ExecutionLanguage.PYTHON) is False
+
+    # 4. Unknown benchmark or non-Python language -> None (Not Validated)
+    assert service._validate_semantic_correctness("B999", b001_good_code, ExecutionLanguage.PYTHON) is None
+    assert service._validate_semantic_correctness("B001", b001_good_code, ExecutionLanguage.JAVA) is None
+
+
+def test_fix_correct_tri_state_serialization(tmp_path):
+    """Verify fix_correct supports True, False, and None across CSV logging and model serialization."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+
+    # Record 1: fix_correct = True
+    rec_true = ExperimentRecord(
+        evaluation_id="eval_tri_1",
+        experiment_id="eval_tri_1_dyn",
+        bug_id="B001",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=1000,
+        re_execution_passed=True,
+        fix_correct=True,
+    )
+    logger.log_experiment(rec_true)
+
+    # Record 2: fix_correct = False
+    rec_false = ExperimentRecord(
+        evaluation_id="eval_tri_2",
+        experiment_id="eval_tri_2_dyn",
+        bug_id="B001",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=1000,
+        re_execution_passed=True,
+        fix_correct=False,
+    )
+    logger.log_experiment(rec_false)
+
+    # Record 3: fix_correct = None (Not Validated)
+    rec_none = ExperimentRecord(
+        evaluation_id="eval_tri_3",
+        experiment_id="eval_tri_3_dyn",
+        bug_id="B999",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=1000,
+        re_execution_passed=True,
+        fix_correct=None,
+    )
+    logger.log_experiment(rec_none)
+
+    # Read back and verify types
+    experiments = logger.get_experiments()
+    assert len(experiments) == 3
+    by_id = {e.evaluation_id: e for e in experiments}
+    assert by_id["eval_tri_1"].fix_correct is True
+    assert by_id["eval_tri_2"].fix_correct is False
+    assert by_id["eval_tri_3"].fix_correct is None
+
+
+
 

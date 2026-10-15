@@ -112,6 +112,9 @@ Full Source Code and Runtime Execution Trace:
             )
             debugger_llm_time = time.time() - llm_start
 
+            if result is None:
+                raise ValueError("Structured model returned None for baseline diagnosis")
+
             result.execution_id = execution_id
             result.error = error_data
             result.queries_used = []
@@ -190,7 +193,7 @@ Full Source Code and Runtime Execution Trace:
                     "output_tokens": debugger_tracker.safe_output_tokens,
                     "total_tokens": debugger_tracker.safe_total_tokens,
                     "token_usage_available": debugger_tracker.usage_available,
-                    "stop_reason": f"error: {str(exc)}",
+                    "stop_reason": f"debugger_error: {str(exc)}",
                 }
             )
 
@@ -240,6 +243,9 @@ Curated Runtime Context:
             )
             debugger_llm_time = time.time() - llm_start
             
+            if result is None:
+                raise ValueError("Structured model returned None for dynamic diagnosis")
+
             result.execution_id = execution_id
             result.error = None
             result.queries_used = curator_telemetry.get("tools_used", [])
@@ -289,7 +295,11 @@ Curated Runtime Context:
                 "token_usage_available": overall_tokens_available,
                 "llm_calls": curator_telemetry.get("llm_calls", 0) + (debugger_tracker.calls or 1),
                 "llm_time": curator_telemetry.get("llm_time", 0.0) + debugger_llm_time,
-                "stop_reason": curator_telemetry.get("stop_reason", "completed"),
+                "stop_reason": (
+                    curator_telemetry.get("stop_reason")
+                    if curator_telemetry.get("stop_reason", "").startswith(("curator_error", "mcp_transport_error", "llm_rate_limit_exceeded"))
+                    else "completed"
+                ),
             }
             result.telemetry = combined_telemetry
             return result
@@ -318,6 +328,12 @@ Curated Runtime Context:
 
             context_chars = len(curated_context)
             logger.error("Dynamic diagnosis LLM call failed: %s", exc, exc_info=True)
+
+            curator_stop = curator_telemetry.get("stop_reason", "")
+            if curator_stop and curator_stop.startswith(("curator_error", "mcp_transport_error", "llm_rate_limit_exceeded")):
+                dynamic_stop = f"{curator_stop} | debugger_error: {str(exc)}"
+            else:
+                dynamic_stop = f"debugger_error: {str(exc)}"
 
             return DebugDiagnosis(
                 execution_id=execution_id,
@@ -350,7 +366,7 @@ Curated Runtime Context:
                     "token_usage_available": overall_tokens_available,
                     "llm_calls": curator_telemetry.get("llm_calls", 0) + (debugger_tracker.calls or 1),
                     "llm_time": curator_telemetry.get("llm_time", 0.0) + debugger_llm_time,
-                    "stop_reason": curator_telemetry.get("stop_reason", f"error: {str(exc)}"),
+                    "stop_reason": dynamic_stop,
                 }
             )
 

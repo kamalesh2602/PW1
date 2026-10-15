@@ -84,7 +84,7 @@ class ExperimentRecord(BaseModel):
     # Effectiveness Metrics
     root_cause_identified: bool = Field(default=False, description="Whether root cause was correctly identified")
     fix_generated: bool = Field(default=False, description="Whether a candidate fix was generated")
-    fix_correct: bool = Field(default=False, description="Whether the fix solved the bug and passed re-execution")
+    fix_correct: Optional[bool] = Field(default=None, description="Whether the fix solved the bug and passed semantic validation. None if not validated.")
     re_execution_passed: bool = Field(default=False, description="Whether re-execution succeeded with exit code 0")
 
     # Status & Metadata

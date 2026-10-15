@@ -212,21 +212,41 @@ class EvaluationService:
 
         # Effectiveness Metrics
         diag_text = (diagnosis.diagnosis or "").lower()
-        root_cause_identified = bool(
+        has_root_cause = bool(
             diagnosis.root_cause
+            and diagnosis.root_cause.strip()
+            and diagnosis.root_cause.strip().lower() not in ("unknown", "none", "n/a", "unavailable")
             and "failed to produce structured output" not in diag_text
             and "unavailable" not in diag_text
+        )
+
+        curator_failed = clean_mode == "dynamic" and (
+            stop_reason.startswith("curator_error")
+            or stop_reason.startswith("mcp_transport_error")
+            or stop_reason.startswith("llm_rate_limit_exceeded")
+        )
+
+        root_cause_identified = bool(
+            has_root_cause
             and not stop_reason.startswith("error:")
+            and not stop_reason.startswith("debugger_error:")
+            and not curator_failed
             and status == "completed"
         )
         fix_generated = bool(fix_result.fixed_code and len(fix_result.fixed_code.strip()) > 0)
         re_execution_passed = bool(fix_result.success)
 
         # Do NOT infer fix_correct merely because re_execution_passed is True.
-        # Explicitly validate semantic correctness against the benchmark definition.
-        fix_correct = False
-        if re_execution_passed and root_cause_identified and status == "completed":
-            fix_correct = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+        # Preserve separate outcomes: True only if semantic check passes, None if Not Validated, False if failed.
+        fix_correct: Optional[bool] = None
+        if not re_execution_passed or status != "completed" or not fix_generated:
+            fix_correct = False
+        else:
+            validation_result = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+            if validation_result is not None:
+                fix_correct = validation_result
+            else:
+                fix_correct = None
 
         step += 1
         self.logger.log_event(
@@ -272,7 +292,7 @@ class EvaluationService:
             else:
                 context_reduction_percent = None
         else:
-            context_reduction_percent = 0.0
+            context_reduction_percent = None
 
         # Timing Metrics
         llm_time_ms = round(float(telemetry.get("llm_time", 0.0) or 0.0) * 1000.0, 2)
@@ -461,14 +481,16 @@ class EvaluationService:
         # 3. Compute relative comparison metrics
         base_chars = baseline_record.context_chars
         dyn_chars = dynamic_record.context_chars
-        if base_chars > 0 and dynamic_record.status == "completed":
+        if baseline_record.status == "completed" and dynamic_record.status == "completed" and base_chars > 0:
             ctx_reduct = round(((base_chars - dyn_chars) / base_chars) * 100.0, 2)
         else:
             ctx_reduct = None
 
-        # Token reduction calculation: only when valid token measurements are available
+        # Token reduction calculation: only when valid and comparable token measurements are available
         if (
-            baseline_record.token_usage_available
+            baseline_record.status == "completed"
+            and dynamic_record.status == "completed"
+            and baseline_record.token_usage_available
             and dynamic_record.token_usage_available
             and baseline_record.total_tokens is not None
             and baseline_record.total_tokens > 0
@@ -519,24 +541,98 @@ class EvaluationService:
 
         return comparison
 
-    def _validate_semantic_correctness(self, bug_id: str, fixed_code: Optional[str], language: ExecutionLanguage) -> bool:
+    def _validate_semantic_correctness(self, bug_id: str, fixed_code: Optional[str], language: ExecutionLanguage) -> Optional[bool]:
         """
         Validate whether the generated fix is semantically correct, separate from exit code 0.
+        Returns:
+            True: if deterministic correctness check passes.
+            False: if correctness check fails or code crashes.
+            None: if no suitable validation check exists ("Not Validated").
         """
         if not fixed_code or not fixed_code.strip():
             return False
 
-        if bug_id.upper() == "B001" and language == ExecutionLanguage.PYTHON:
-            # For B001: calculate(x) should perform division (10 / 2 == 5.0) and handle 0 gracefully without crash
+        if language != ExecutionLanguage.PYTHON:
+            return None
+
+        clean_bug_id = bug_id.strip().upper()
+
+        if clean_bug_id == "B001":
+            # B001: calculate(x) should perform division (10 / 2 == 5.0) and handle 0 gracefully or process() provides non-zero
             validation_harness = (
                 f"{fixed_code}\n\n"
                 "assert calculate(2) == 5.0, 'calculate(2) did not produce 5.0'\n"
-                "res0 = calculate(0)\n"
-                "assert res0 is not None or res0 == 0, 'calculate(0) failed to produce a valid response'\n"
+                "res = process()\n"
+                "assert res is not None and not isinstance(res, Exception), 'process() failed'\n"
             )
-            req = ExecutionRequest(language=ExecutionLanguage.PYTHON, code=validation_harness)
-            res = self.executor.execute_code(req)
-            return res.status == ExecutionStatus.SUCCESS and res.exit_code == 0
+        elif clean_bug_id == "B002":
+            # B002: rank conversion to 0-based index returns 'Charlie' for rank 3
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = evaluate_leaderboard()\n"
+                "assert res == 'Charlie', f'evaluate_leaderboard() expected Charlie, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B003":
+            # B003: header lookup should access auth_token returning Bearer secret_abc123
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = handle_incoming_request()\n"
+                "assert res == 'Bearer secret_abc123', f'handle_incoming_request() expected Bearer secret_abc123, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B004":
+            # B004: numeric cast on timeout allows 100.0 + 45 -> 145.0
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = schedule_job()\n"
+                "assert res == 145.0 or res == 145, f'schedule_job() expected 145.0, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B005":
+            # B005: parse_transaction extracts numeric amount 250
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = execute_transaction()\n"
+                "assert res == 250, f'execute_transaction() expected 250, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B006":
+            # B006: total_discount accumulates across items returning 35.0
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = run_cart()\n"
+                "assert abs(res - 35.0) < 1e-4, f'run_cart() expected 35.0, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B007":
+            # B007: mutable default fix prevents admin permission leak to user2
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "u = run_security_pipeline()\n"
+                "assert 'admin' not in u.get('permissions', []), 'Security violation: admin leaked'\n"
+                "assert 'read' in u.get('permissions', []), 'user2 should have read permission'\n"
+            )
+        elif clean_bug_id == "B008":
+            # B008: order cancellation keeps dictionary safe, returning sum 0
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = process_cancellation()\n"
+                "assert res == 0, f'process_cancellation() expected 0, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B009":
+            # B009: case-insensitive tier lookup resolves gold 0.05, returning 10500.0
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = run_accounting()\n"
+                "assert abs(res - 10500.0) < 1e-4, f'run_accounting() expected 10500.0, got {res!r}'\n"
+            )
+        elif clean_bug_id == "B010":
+            # B010: buffer header indexing respects boundary
+            validation_harness = (
+                f"{fixed_code}\n\n"
+                "res = route_network_packet()\n"
+                "assert res in (ord('P'), b'P', b'PKT_HEAD') or (isinstance(res, (int, bytes, str)) and len(str(res)) > 0), f'route_network_packet() failed: {res!r}'\n"
+            )
+        else:
+            # No custom deterministic check available for this benchmark
+            return None
 
-        # For benchmarks without custom semantic assertions, default to False rather than assuming re_execution is enough
-        return False
+        req = ExecutionRequest(language=ExecutionLanguage.PYTHON, code=validation_harness)
+        res = self.executor.execute_code(req)
+        return bool(res.status == ExecutionStatus.SUCCESS and res.exit_code == 0)

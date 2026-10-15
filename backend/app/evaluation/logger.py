@@ -461,7 +461,11 @@ class ExperimentLogger:
                             "total_time_ms": exp_tot_time,
                             "root_cause_identified": str(row.get("root_cause_identified", "")).lower() == "true",
                             "fix_generated": str(row.get("fix_generated", "")).lower() == "true",
-                            "fix_correct": str(row.get("fix_correct", "")).lower() == "true",
+                            "fix_correct": (
+                                True if str(row.get("fix_correct", "")).strip().lower() in ("true", "1")
+                                else False if str(row.get("fix_correct", "")).strip().lower() in ("false", "0")
+                                else None
+                            ),
                             "re_execution_passed": str(row.get("re_execution_passed", "")).lower() == "true",
                             "stop_reason": row.get("stop_reason", ""),
                             "status": row.get("status", "completed"),
