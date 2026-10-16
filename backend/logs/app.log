@@ -1129,3 +1129,470 @@ Traceback (most recent call last):
     )
 openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
 2026-10-15 22:52:57 [WARNING] [app.fix_route]: Fix request trace not found: Execution trace for non-existent-id-12345 not found.
+2026-10-16 09:38:57 [INFO] [app.main]: PW1 API application starting up...
+2026-10-16 09:38:57 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-16 09:39:36 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:39:36 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:39:39 [WARNING] [app.curator]: LLM error during curation: UnauthorizedResponseError(message='User not found.', status_code=401, body='{"error":{"message":"User not found.","code":401}}', headers=Headers({'date': 'Fri, 16 Oct 2026 04:09:37 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'X-Generation-Id,X-Provider-Name,request-id,cf-ray', 'set-cookie': '__cf_bm=rgtn2pS0turKdaVYohjZ5mPWnBz8_FAtpELGHplBDjQ-1792123777.003618-1.0.1.1-WrYQ49Gl6ZrnBR.GkQR1BmPLw3CoqHuExPtxBtw7A8tHdCiF3ilOwLxT33RuXU8dRHmkyn0y9k1xM6mF6.i9Es2Q.fC0JuKMWB7l5hYPHlwWsTg2GVj5Z1Xf84MUpHjV; HttpOnly; SameSite=None; Secure; Path=/; Domain=openrouter.ai; Expires=Fri, 16 Oct 2026 04:39:37 GMT', 'permissions-policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'referrer-policy': 'no-referrer, strict-origin-when-cross-origin', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': 'a4b435864fd11262-MAA'}), raw_response=<Response [401 Unauthorized]>, data=UnauthorizedResponseErrorData(error=UnauthorizedResponseErrorData(code=401, message='User not found.', metadata=Unset()), openrouter_metadata=Unset(), user_id=Unset()))
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:39:39 [INFO] [app.curator]: curation_summary: execution_id=341dbd74-c83e-4d0f-b4b9-906bdbcb9d27 mcp_calls=4 context_size=1439 time_spent=2.70s stop_reason=curator_error
+2026-10-16 09:39:39 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:39:39 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:40:02 [WARNING] [app.curator]: LLM error during curation: UnauthorizedResponseError(message='User not found.', status_code=401, body='{"error":{"message":"User not found.","code":401}}', headers=Headers({'date': 'Fri, 16 Oct 2026 04:10:00 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'X-Generation-Id,X-Provider-Name,request-id,cf-ray', 'set-cookie': '__cf_bm=JdsyyZTwEBBFj6R5vgtVAO9mBSD6KmPZ5wB5pHEtkBQ-1792123800.116129-1.0.1.1-QzXJKM8QWY7Qdxc1xCigXcUSWny5DDCnHFMMnn0adMEOm3I8U_DCqkP_bAbU.QJGxJ9yr8kFa2K4ijl0s0fTqkOrucRB1jFeIeoNrps9j_qvsKze8LMQtSowfEGMoOvO; HttpOnly; SameSite=None; Secure; Path=/; Domain=openrouter.ai; Expires=Fri, 16 Oct 2026 04:40:00 GMT', 'permissions-policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'referrer-policy': 'no-referrer, strict-origin-when-cross-origin', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': 'a4b43616bd3db0da-MAA'}), raw_response=<Response [401 Unauthorized]>, data=UnauthorizedResponseErrorData(error=UnauthorizedResponseErrorData(code=401, message='User not found.', metadata=Unset()), openrouter_metadata=Unset(), user_id=Unset()))
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:40:02 [INFO] [app.curator]: curation_summary: execution_id=14ab177d-9cca-4cae-891f-1949d7da0cee mcp_calls=4 context_size=1439 time_spent=2.42s stop_reason=curator_error
+2026-10-16 09:40:02 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:40:02 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: User not found.
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\language_models\chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_openrouter\chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\openrouter\chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: User not found.
+2026-10-16 09:43:54 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-16 09:44:06 [INFO] [app.main]: PW1 API application starting up...
+2026-10-16 09:44:06 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-16 09:44:38 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-16 09:45:50 [INFO] [app.curator]: curation_summary: execution_id=25620498-6b57-471c-853b-ea465ae8a4a0 mcp_calls=6 context_size=2400 time_spent=51.71s stop_reason=root_cause_identified
+2026-10-16 09:52:40 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-16 09:53:42 [INFO] [app.curator]: curation_summary: execution_id=ce954f96-f48e-4ff9-84d9-dd77734d931f mcp_calls=8 context_size=2775 time_spent=42.76s stop_reason=root_cause_identified
+2026-10-16 10:00:16 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_source_context'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-16 10:00:16 [INFO] [app.curator]: curation_summary: execution_id=52b049c6-ff93-4219-83d0-c832bde03a28 mcp_calls=4 context_size=1386 time_spent=5.72s stop_reason=curator_error
+2026-10-16 10:04:39 [INFO] [app.curator]: curation_summary: execution_id=0cbfc64e-cfa7-4e52-9602-0399cc4138dc mcp_calls=9 context_size=9508 time_spent=57.23s stop_reason=budget_limit_reached
+2026-10-16 10:12:51 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-16 10:14:00 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_source_context'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "D:\PSG\sem7\PW1\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-16 10:14:01 [INFO] [app.curator]: curation_summary: execution_id=09fe84c2-01d1-4d8d-ae8a-0db23d4f5536 mcp_calls=7 context_size=2947 time_spent=62.25s stop_reason=curator_error
+2026-10-16 10:14:16 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Structured model returned None for dynamic diagnosis
+Traceback (most recent call last):
+  File "D:\PSG\sem7\PW1\PW1\backend\app\agent\debugger.py", line 247, in _diagnose_dynamic
+    raise ValueError("Structured model returned None for dynamic diagnosis")
+ValueError: Structured model returned None for dynamic diagnosis
+2026-10-16 10:15:12 [INFO] [app.main]: PW1 API application shutting down...
