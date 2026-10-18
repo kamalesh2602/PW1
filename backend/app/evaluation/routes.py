@@ -2,6 +2,7 @@
 FastAPI router for Milestone 8 evaluation endpoints.
 """
 
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
 
@@ -32,22 +33,22 @@ eval_service = EvaluationService()
     "/benchmarks",
     response_model=list[BenchmarkCase],
 )
-async def list_benchmarks() -> list[BenchmarkCase]:
-    """Retrieve all fixed debugging benchmark tasks (B001 - B010)."""
-    return get_all_benchmarks()
+async def list_benchmarks(language: Optional[str] = Query(default=None)) -> list[BenchmarkCase]:
+    """Retrieve all fixed debugging benchmark tasks (B001 - B010) for the specified language."""
+    return get_all_benchmarks(language=language or "python")
 
 
 @router.get(
     "/benchmarks/{bug_id}",
     response_model=BenchmarkCase,
 )
-async def get_benchmark_by_id(bug_id: str) -> BenchmarkCase:
-    """Retrieve a single benchmark by its bug_id (e.g., B001)."""
-    bench = get_benchmark(bug_id)
+async def get_benchmark_by_id(bug_id: str, language: Optional[str] = Query(default=None)) -> BenchmarkCase:
+    """Retrieve a single benchmark by its bug_id (e.g., B001) for the specified language."""
+    bench = get_benchmark(bug_id, language=language or "python")
     if not bench:
         raise HTTPException(
             status_code=404,
-            detail=f"Benchmark '{bug_id}' not found.",
+            detail=f"Benchmark '{bug_id}' not found for language '{language or 'python'}'.",
         )
     return bench
 
@@ -64,11 +65,11 @@ async def run_single_experiment(request: BenchmarkRunRequest) -> ExperimentRecor
     bug_id = request.bug_id or "CUSTOM"
 
     if request.bug_id and not code:
-        bench = get_benchmark(request.bug_id)
+        bench = get_benchmark(request.bug_id, language=language)
         if not bench:
             raise HTTPException(
                 status_code=404,
-                detail=f"Benchmark '{request.bug_id}' not found.",
+                detail=f"Benchmark '{request.bug_id}' not found for language '{language}'.",
             )
         code = bench.code
         language = bench.language

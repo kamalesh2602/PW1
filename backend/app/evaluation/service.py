@@ -434,7 +434,7 @@ class EvaluationService:
         effective_code = code
 
         if bug_id:
-            bench = get_benchmark(bug_id)
+            bench = get_benchmark(bug_id, language=language)
             if bench:
                 effective_code = bench.code
                 language = bench.language
@@ -551,6 +551,40 @@ class EvaluationService:
         """
         if not fixed_code or not fixed_code.strip():
             return False
+
+        if language == ExecutionLanguage.JAVA:
+            if "class " not in fixed_code:
+                return None
+
+            req = ExecutionRequest(language=ExecutionLanguage.JAVA, code=fixed_code)
+            res = self.executor.execute_code(req)
+            if res.status != ExecutionStatus.SUCCESS or res.exit_code != 0:
+                if res.stderr and ("javac is not available" in res.stderr.lower() or "not available" in res.stderr.lower()):
+                    return None
+                return False
+
+            out = (res.stdout or "").strip()
+            if clean_bug_id == "B001":
+                return True
+            elif clean_bug_id == "B002":
+                return "Charlie" in out
+            elif clean_bug_id == "B003":
+                return "Bearer secret_abc123" in out
+            elif clean_bug_id == "B004":
+                return "145" in out
+            elif clean_bug_id == "B005":
+                return "250" in out
+            elif clean_bug_id == "B006":
+                return "35" in out
+            elif clean_bug_id == "B007":
+                return True
+            elif clean_bug_id == "B008":
+                return "0" in out
+            elif clean_bug_id == "B009":
+                return "10500" in out
+            elif clean_bug_id == "B010":
+                return True
+            return None
 
         if language != ExecutionLanguage.PYTHON:
             return None

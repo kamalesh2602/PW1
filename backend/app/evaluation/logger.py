@@ -472,6 +472,34 @@ class ExperimentLogger:
                             "timestamp": row.get("timestamp", ""),
                         }
                         records.append(ExperimentRecord(**converted))
+
+                # Pair dynamic records with baseline records using evaluation_id, bug_id, and language
+                baselines: dict[tuple[str, str, str], ExperimentRecord] = {}
+                for rec in records:
+                    if rec.mode == "baseline" and rec.evaluation_id and rec.bug_id:
+                        key = (
+                            rec.evaluation_id.strip(),
+                            rec.bug_id.strip().upper(),
+                            (rec.language or "python").strip().lower(),
+                        )
+                        baselines[key] = rec
+
+                for rec in records:
+                    if rec.mode == "dynamic" and rec.evaluation_id and rec.bug_id:
+                        key = (
+                            rec.evaluation_id.strip(),
+                            rec.bug_id.strip().upper(),
+                            (rec.language or "python").strip().lower(),
+                        )
+                        base = baselines.get(key)
+                        if (
+                            base is not None
+                            and base.context_chars is not None
+                            and base.context_chars > 0
+                            and rec.context_chars is not None
+                        ):
+                            reduct = ((base.context_chars - rec.context_chars) / base.context_chars) * 100.0
+                            rec.context_reduction_percent = round(reduct, 2)
             except Exception:
                 return []
 

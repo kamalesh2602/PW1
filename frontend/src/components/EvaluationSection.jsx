@@ -49,18 +49,50 @@ const formatReduction = (percent, isToken = false) => {
 };
 
 // Helper function for concise table reduction column
-const formatTableReduction = (percent) => {
-  if (percent === null || percent === undefined || isNaN(percent) || percent === 0) {
-    return '-';
+const formatTableReduction = (percent, mode = 'dynamic') => {
+  if (mode === 'baseline') {
+    return '—';
+  }
+  if (percent === null || percent === undefined || isNaN(percent)) {
+    return '—';
   }
   const val = Number(percent);
   if (val > 0) {
     return `${val.toFixed(1)}%`;
+  } else if (val < 0) {
+    return `+${Math.abs(val).toFixed(1)}%`;
   }
-  return `+${Math.abs(val).toFixed(1)}%`;
+  return '0.0%';
 };
 
-export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
+// Match paired runs using actual evaluation/pair identifier, benchmark, and language
+const getContextReduction = (exp, allExperiments) => {
+  if (exp.mode !== 'dynamic') return null;
+  if (exp.context_reduction_percent !== null && exp.context_reduction_percent !== undefined) {
+    return exp.context_reduction_percent;
+  }
+  if (!exp.evaluation_id || !exp.bug_id || exp.context_chars === null || exp.context_chars === undefined) {
+    return null;
+  }
+  const matchingBaseline = allExperiments.find(
+    (b) =>
+      b.mode === 'baseline' &&
+      b.evaluation_id?.trim() === exp.evaluation_id?.trim() &&
+      b.bug_id?.trim().toUpperCase() === exp.bug_id?.trim().toUpperCase() &&
+      (b.language || 'python').trim().toLowerCase() === (exp.language || 'python').trim().toLowerCase()
+  );
+  if (!matchingBaseline || matchingBaseline.context_chars === null || matchingBaseline.context_chars === undefined || matchingBaseline.context_chars <= 0) {
+    return null;
+  }
+  return ((matchingBaseline.context_chars - exp.context_chars) / matchingBaseline.context_chars) * 100;
+};
+
+export const EvaluationSection = ({
+  onLoadBenchmarkCode,
+  selectedLanguage: propLanguage = 'python',
+  onLanguageChange,
+}) => {
+  const [currentLanguage, setCurrentLanguage] = useState(propLanguage || 'python');
   const [benchmarks, setBenchmarks] = useState([]);
   const [selectedBugId, setSelectedBugId] = useState('B001');
   const [isRunning, setIsRunning] = useState(false);
@@ -68,6 +100,21 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
   const [evalError, setEvalError] = useState(null);
   const [recentExperiments, setRecentExperiments] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    if (propLanguage && propLanguage !== currentLanguage) {
+      setCurrentLanguage(propLanguage);
+      fetchBenchmarks(propLanguage);
+    }
+  }, [propLanguage]);
+
+  const handleLanguageSelect = (newLang) => {
+    setCurrentLanguage(newLang);
+    if (onLanguageChange) {
+      onLanguageChange(newLang);
+    }
+    fetchBenchmarks(newLang);
+  };
 
   // Inspection states
   const inspectorRef = useRef(null);
@@ -144,13 +191,13 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
   };
 
   useEffect(() => {
-    fetchBenchmarks();
+    fetchBenchmarks(currentLanguage);
     fetchHistory();
   }, []);
 
-  const fetchBenchmarks = async () => {
+  const fetchBenchmarks = async (lang = currentLanguage) => {
     try {
-      const data = await getBenchmarks();
+      const data = await getBenchmarks(lang);
       setBenchmarks(data);
       if (data.length > 0 && !selectedBugId) {
         setSelectedBugId(data[0].bug_id);
@@ -176,7 +223,11 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
     setIsRunning(true);
     setEvalError(null);
     try {
-      const res = await runPairedEvaluation({ bugId: selectedBugId });
+      const res = await runPairedEvaluation({
+        bugId: selectedBugId,
+        language: currentLanguage,
+        code: selectedBench?.code,
+      });
       setComparisonResult(res);
       fetchHistory();
       // Automatically load the inspection for the newly completed evaluation
@@ -349,6 +400,20 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
 
       {/* 2. Experiment Controls / Benchmark Picker */}
       <div className="eval-toolbar">
+        <div className="benchmark-picker">
+          <label htmlFor="eval-language-select" className="eval-label">Language:</label>
+          <select
+            id="eval-language-select"
+            className="benchmark-dropdown language-dropdown"
+            value={currentLanguage}
+            onChange={(e) => handleLanguageSelect(e.target.value)}
+            disabled={isRunning}
+          >
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+          </select>
+        </div>
+
         <div className="benchmark-picker">
           <label htmlFor="benchmark-select" className="eval-label">Benchmark Task:</label>
           <select
@@ -1020,7 +1085,6 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   <th>Total Tokens</th>
                   <th>MCP Calls</th>
                   <th>Total Time (ms)</th>
-                  <th>Fix Correct</th>
                   <th>Timestamp</th>
                   <th>Action</th>
                 </tr>
@@ -1034,7 +1098,10 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                     <td className="font-mono text-xs" title={exp.experiment_id}>
                       {exp.experiment_id ? exp.experiment_id.slice(-14) : '-'}
                     </td>
-                    <td className="font-bold">{exp.bug_id}</td>
+                    <td className="font-bold">
+                      {exp.bug_id}
+                      <span className="text-xs text-muted font-normal block">{exp.language || 'python'}</span>
+                    </td>
                     <td>
                       <span className={`mode-badge ${exp.mode}`}>
                         {exp.mode === 'baseline' ? 'Baseline' : 'Dynamic'}
@@ -1046,7 +1113,14 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                       </span>
                     </td>
                     <td>{(exp.context_chars ?? exp.context_size ?? 0).toLocaleString()} chars</td>
-                    <td>{formatTableReduction(exp.context_reduction_percent)}</td>
+                    {(() => {
+                      const reduct = getContextReduction(exp, recentExperiments);
+                      return (
+                        <td className={reduct > 0 ? 'text-reduction' : reduct < 0 ? 'text-increase' : ''}>
+                          {formatTableReduction(reduct, exp.mode)}
+                        </td>
+                      );
+                    })()}
                     <td>
                       {exp.token_usage_available && exp.total_tokens !== null
                         ? exp.total_tokens.toLocaleString()
@@ -1054,15 +1128,6 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                     </td>
                     <td>{exp.mcp_calls}</td>
                     <td>{(exp.total_experiment_time_ms || exp.total_time_ms || 0).toFixed(0)} ms</td>
-                    <td>
-                      {exp.fix_correct === true ? (
-                        <span className="text-success text-xs font-semibold">Validated</span>
-                      ) : exp.fix_correct === false ? (
-                        <span className="text-error text-xs font-semibold">Failed</span>
-                      ) : (
-                        <span className="text-muted text-xs">Not Validated</span>
-                      )}
-                    </td>
                     <td className="text-xs text-muted">
                       {exp.timestamp ? new Date(exp.timestamp).toLocaleTimeString() : '-'}
                     </td>

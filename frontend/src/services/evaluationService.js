@@ -10,13 +10,15 @@ const apiClient = axios.create({
   timeout: 180000, // 3 minutes timeout for multi-step agent and Docker re-execution
 });
 
-export async function getBenchmarks() {
-  const response = await apiClient.get('/evaluation/benchmarks');
+export async function getBenchmarks(language = 'python') {
+  const langParam = language ? `?language=${encodeURIComponent(language)}` : '';
+  const response = await apiClient.get(`/evaluation/benchmarks${langParam}`);
   return response.data;
 }
 
-export async function getBenchmarkById(bugId) {
-  const response = await apiClient.get(`/evaluation/benchmarks/${bugId}`);
+export async function getBenchmarkById(bugId, language = 'python') {
+  const langParam = language ? `?language=${encodeURIComponent(language)}` : '';
+  const response = await apiClient.get(`/evaluation/benchmarks/${encodeURIComponent(bugId)}${langParam}`);
   return response.data;
 }
 

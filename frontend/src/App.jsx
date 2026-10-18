@@ -286,7 +286,11 @@ export default function App() {
         </div>
 
         {/* Milestone 8: Baseline Comparison & Evaluation Suite */}
-        <EvaluationSection onLoadBenchmarkCode={handleLoadBenchmarkCode} />
+        <EvaluationSection
+          onLoadBenchmarkCode={handleLoadBenchmarkCode}
+          selectedLanguage={language}
+          onLanguageChange={handleLanguageChange}
+        />
       </main>
     </div>
   );

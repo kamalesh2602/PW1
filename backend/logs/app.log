@@ -1601,3 +1601,161 @@ ValueError: Structured model returned None for dynamic diagnosis
 2026-10-18 13:15:53 [INFO] [app.main]: PW1 API application starting up...
 2026-10-18 13:15:53 [INFO] [app.main]: MCP session manager initialized on /mcp
 2026-10-18 13:18:01 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-18 13:28:41 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-18 13:28:42 [INFO] [app.curator]: curation_summary: execution_id=1a7f153f-fe97-4d67-97fe-436874725fd0 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-18 13:28:42 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-18 13:28:43 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-18 13:28:43 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:28:43 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:28:43 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-18 13:28:43 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:28:43 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-18 13:35:16 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-18 13:35:16 [INFO] [app.curator]: curation_summary: execution_id=b1c8bb9a-afc1-4247-b553-be26fe08ecbe mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-18 13:35:16 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-18 13:35:17 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-18 13:35:17 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:35:17 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:35:17 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-18 13:35:17 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:35:17 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-18 13:35:17 [ERROR] [app.main]: Unhandled exception processing GET /evaluation/benchmarks: `TypeAdapter[typing.Annotated[ForwardRef('Optional[str]', owner=<function list_benchmarks at 0x0000027F3E1762A0>), FieldInfo(annotation=NoneType, required=False, default=None, alias='language', alias_priority=2, json_schema_extra={})]]` is not fully defined; you should define `typing.Annotated[ForwardRef('Optional[str]', owner=<function list_benchmarks at 0x0000027F3E1762A0>), FieldInfo(annotation=NoneType, required=False, default=None, alias='language', alias_priority=2, json_schema_extra={})]` and all referenced types, then call `.rebuild()` on the instance.
+
+For further information visit https://errors.pydantic.dev/2.12/u/class-not-fully-defined
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\routing.py", line 481, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\dependencies\utils.py", line 684, in solve_dependencies
+    query_values, query_errors = request_params_to_args(
+                                 ~~~~~~~~~~~~~~~~~~~~~~^
+        dependant.query_params, request.query_params
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\dependencies\utils.py", line 859, in request_params_to_args
+    v_, errors_ = _validate_value_with_model_field(
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        field=field, value=value, values=values, loc=loc
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\dependencies\utils.py", line 742, in _validate_value_with_model_field
+    return field.validate(value, values, loc=loc)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\fastapi\_compat\v2.py", line 182, in validate
+    self._type_adapter.validate_python(value, from_attributes=True),
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\type_adapter.py", line 441, in validate_python
+    return self.validator.validate_python(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\_internal\_mock_val_ser.py", line 100, in __getattr__
+    raise PydanticUserError(self._error_message, code=self._code)
+pydantic.errors.PydanticUserError: `TypeAdapter[typing.Annotated[ForwardRef('Optional[str]', owner=<function list_benchmarks at 0x0000027F3E1762A0>), FieldInfo(annotation=NoneType, required=False, default=None, alias='language', alias_priority=2, json_schema_extra={})]]` is not fully defined; you should define `typing.Annotated[ForwardRef('Optional[str]', owner=<function list_benchmarks at 0x0000027F3E1762A0>), FieldInfo(annotation=NoneType, required=False, default=None, alias='language', alias_priority=2, json_schema_extra={})]` and all referenced types, then call `.rebuild()` on the instance.
+
+For further information visit https://errors.pydantic.dev/2.12/u/class-not-fully-defined
+2026-10-18 13:35:43 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-18 13:35:44 [INFO] [app.curator]: curation_summary: execution_id=6b25cbe5-3f11-4c10-98a1-67bd5cb5d499 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-18 13:35:44 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\pydantic\main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-18 13:35:45 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.

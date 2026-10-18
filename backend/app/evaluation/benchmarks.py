@@ -291,12 +291,443 @@ route_network_packet()""",
     ),
 }
 
+PYTHON_BENCHMARKS = BENCHMARKS
 
-def get_all_benchmarks() -> list[BenchmarkCase]:
-    """Return all predefined benchmark cases in order."""
-    return list(BENCHMARKS.values())
+JAVA_BENCHMARKS: dict[str, BenchmarkCase] = {
+    "B001": BenchmarkCase(
+        bug_id="B001",
+        category="ArithmeticException",
+        title="Division by Zero in Function Call",
+        language="java",
+        code="""public class Main {
+    public static int calculate(int x) {
+        return 10 / x;
+    }
+
+    public static int process() {
+        int value = 0;
+        return calculate(value);
+    }
+
+    public static void main(String[] args) {
+        process();
+    }
+}""",
+        stdin="",
+        expected_error="ArithmeticException",
+        description="A nested method performs arithmetic division where the divisor argument evaluates to zero at runtime.",
+        expected_root_cause="The caller process() initializes value to 0 and passes it into calculate(), where it is used directly as the divisor in 10 / x without validation, throwing an ArithmeticException.",
+        expected_behavior="process() should provide a non-zero divisor (or calculate() should handle a zero divisor safely) so that 10 / x computes a valid numeric quotient without raising ArithmeticException."
+    ),
+    "B002": BenchmarkCase(
+        bug_id="B002",
+        category="ArrayIndexOutOfBoundsException",
+        title="Rank Index Calculation Exceeds Bounds",
+        language="java",
+        code="""public class Main {
+    public static int computeRankIndex(String[] players, int rank) {
+        return rank;
+    }
+
+    public static String getRankedPlayer(String[] players, int rankIdx) {
+        return players[rankIdx];
+    }
+
+    public static String evaluateLeaderboard() {
+        String[] leaderboard = {"Alice", "Bob", "Charlie"};
+        int idx = computeRankIndex(leaderboard, 3);
+        return getRankedPlayer(leaderboard, idx);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(evaluateLeaderboard());
+    }
+}""",
+        stdin="",
+        expected_error="ArrayIndexOutOfBoundsException",
+        description="1-based rank computation directly indexes a 0-based array, resulting in an out-of-range index lookup on the final rank.",
+        expected_root_cause="computeRankIndex() returns the 1-based rank value (3) without converting it to a 0-based index (rank - 1), causing getRankedPlayer() to access index 3 on a 3-element array with valid indices 0 to 2.",
+        expected_behavior="computeRankIndex() should convert 1-based rank to 0-based index (rank - 1), allowing getRankedPlayer() to access leaderboard[2] and return 'Charlie'."
+    ),
+    "B003": BenchmarkCase(
+        bug_id="B003",
+        category="NoSuchElementException",
+        title="Missing Authentication Header Key",
+        language="java",
+        code="""import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
+public class Main {
+    public static String extractHeader(Map<String, String> headers, String headerName) {
+        if (!headers.containsKey(headerName)) {
+            throw new NoSuchElementException("Header not found: " + headerName);
+        }
+        return headers.get(headerName);
+    }
+
+    public static String authenticateSession(Map<String, Object> requestData) {
+        @SuppressWarnings("unchecked")
+        Map<String, String> headers = (Map<String, String>) requestData.getOrDefault("headers", new HashMap<String, String>());
+        String token = extractHeader(headers, "authorization");
+        return "Bearer " + token;
+    }
+
+    public static String handleIncomingRequest() {
+        Map<String, Object> request = new HashMap<>();
+        request.put("endpoint", "/api/v1/resource");
+        Map<String, String> headers = new HashMap<>();
+        headers.put("content-type", "application/json");
+        headers.put("auth_token", "secret_abc123");
+        request.put("headers", headers);
+        return authenticateSession(request);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(handleIncomingRequest());
+    }
+}""",
+        stdin="",
+        expected_error="NoSuchElementException",
+        description="Authentication handler attempts direct map access for 'authorization' key when client header was supplied as 'auth_token'.",
+        expected_root_cause="authenticateSession() attempts to retrieve key 'authorization' from the headers map, but the client request payload was provided with key 'auth_token', causing extractHeader() to throw NoSuchElementException.",
+        expected_behavior="The header lookup should access 'auth_token' (or handle missing headers gracefully), returning 'Bearer secret_abc123'."
+    ),
+    "B004": BenchmarkCase(
+        bug_id="B004",
+        category="ClassCastException",
+        title="String and Double Type Mismatch Across Calls",
+        language="java",
+        code="""import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static Map<String, Object> parseConfiguration(Map<String, String> rawConfig) {
+        Map<String, Object> config = new HashMap<>();
+        config.put("service", rawConfig.get("name"));
+        config.put("timeout", rawConfig.getOrDefault("timeout_sec", "30"));
+        return config;
+    }
+
+    public static double calculateDeadline(double baseTime, Object timeout) {
+        Double timeoutVal = (Double) timeout;
+        return baseTime + timeoutVal;
+    }
+
+    public static double scheduleJob() {
+        Map<String, String> raw = new HashMap<>();
+        raw.put("name", "worker");
+        raw.put("timeout_sec", "45");
+        Map<String, Object> config = parseConfiguration(raw);
+        double startTime = 100.0;
+        return calculateDeadline(startTime, config.get("timeout"));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(scheduleJob());
+    }
+}""",
+        stdin="",
+        expected_error="ClassCastException",
+        description="Configuration parser propagates timeout as a String rather than a numeric Double, causing a ClassCastException when cast for arithmetic.",
+        expected_root_cause="parseConfiguration() keeps 'timeout_sec' as string '45' instead of parsing it to a Double, causing calculateDeadline() to attempt casting a String to Double.",
+        expected_behavior="The timeout value should be parsed to a numeric Double (Double.parseDouble), allowing calculateDeadline() to perform addition and return 145.0."
+    ),
+    "B005": BenchmarkCase(
+        bug_id="B005",
+        category="NumberFormatException",
+        title="Invalid Number Format in Transaction Segment Parsing",
+        language="java",
+        code="""public class Main {
+    public static int extractNumericCode(String codeStr) {
+        return Integer.parseInt(codeStr);
+    }
+
+    public static int parseTransaction(String rawTx) {
+        String[] parts = rawTx.split(":");
+        String tag = parts[0];
+        String txCode = parts[1];
+        return extractNumericCode(txCode);
+    }
+
+    public static int executeTransaction() {
+        String txData = "TX:TRANSFER_99:250";
+        return parseTransaction(txData);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(executeTransaction());
+    }
+}""",
+        stdin="",
+        expected_error="NumberFormatException",
+        description="Transaction parser indexes an alphanumeric identifier segment instead of the numeric amount segment when converting to integer.",
+        expected_root_cause="parseTransaction() extracts parts[1] ('TRANSFER_99', the transaction label) instead of parts[2] ('250', the numeric amount) and passes it to extractNumericCode(), where Integer.parseInt() fails with NumberFormatException.",
+        expected_behavior="parseTransaction() should extract the numeric amount segment (parts[2]) so extractNumericCode() successfully returns integer 250."
+    ),
+    "B006": BenchmarkCase(
+        bug_id="B006",
+        category="Logic error",
+        title="Accidental Reset in Discount Accumulator Loop",
+        language="java",
+        code="""public class Main {
+    public static double calculateTotalDiscount(double[] prices, double discountRate) {
+        double totalDiscount = 0.0;
+        for (double price : prices) {
+            double discount = price * discountRate;
+            totalDiscount = discount;
+        }
+        return totalDiscount;
+    }
+
+    public static double runCart() {
+        double[] items = {100.0, 200.0, 50.0};
+        double rate = 0.10;
+        double result = calculateTotalDiscount(items, rate);
+        System.out.println("Total discount: " + result);
+        return result;
+    }
+
+    public static void main(String[] args) {
+        double res = runCart();
+        if (Math.abs(res - 35.0) > 1e-4) {
+            throw new IllegalStateException("Incorrect total discount: " + res);
+        }
+    }
+}""",
+        stdin="",
+        expected_error="LogicError / IllegalStateException",
+        description="Loop execution reassigns the accumulator variable instead of adding to it, causing only the last iteration's discount to be returned.",
+        expected_root_cause="The accumulator totalDiscount is overwritten inside the loop (totalDiscount = discount) rather than accumulated (totalDiscount += discount), causing previous item discounts to be discarded and returning 5.0 instead of 35.0.",
+        expected_behavior="The loop should accumulate discounts across all items (totalDiscount += discount), producing a total discount of 35.0 across the three items [100.0, 200.0, 50.0] at a 10% rate."
+    ),
+    "B007": BenchmarkCase(
+        bug_id="B007",
+        category="State/mutation bug",
+        title="Shared Mutable Default Permission Leak",
+        language="java",
+        code="""import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class Main {
+    private static final List<String> DEFAULT_PERMISSIONS = new ArrayList<>();
+
+    public static Map<String, Object> createUserSession(String userId, List<String> permissions) {
+        if (permissions == null) {
+            permissions = DEFAULT_PERMISSIONS;
+        }
+        permissions.add("read");
+        Map<String, Object> session = new HashMap<>();
+        session.put("user_id", userId);
+        session.put("permissions", permissions);
+        return session;
+    }
+
+    public static Map<String, Object> grantAdmin(Map<String, Object> session) {
+        @SuppressWarnings("unchecked")
+        List<String> perms = (List<String>) session.get("permissions");
+        perms.add("admin");
+        return session;
+    }
+
+    public static Map<String, Object> runSecurityPipeline() {
+        Map<String, Object> user1 = createUserSession("alice", null);
+        grantAdmin(user1);
+        Map<String, Object> user2 = createUserSession("bob", null);
+        @SuppressWarnings("unchecked")
+        List<String> perms2 = (List<String>) user2.get("permissions");
+        if (perms2.contains("admin")) {
+            throw new AssertionError("Security violation: " + user2.get("user_id") + " leaked admin permission");
+        }
+        return user2;
+    }
+
+    public static void main(String[] args) {
+        runSecurityPipeline();
+    }
+}""",
+        stdin="",
+        expected_error="AssertionError",
+        description="A method uses a shared static list as a default parameter without defensive copying, causing state mutations from earlier user sessions to contaminate subsequent user sessions.",
+        expected_root_cause="createUserSession() reuses a shared mutable list (DEFAULT_PERMISSIONS) across calls when permissions is null. When alice is granted 'admin', the shared list is mutated, causing bob's new session to inherit alice's admin permission and throw AssertionError.",
+        expected_behavior="createUserSession() should create a new ArrayList<>() for default permissions (new ArrayList<>()), ensuring user sessions do not share mutable state and bob is not granted admin."
+    ),
+    "B008": BenchmarkCase(
+        bug_id="B008",
+        category="NullPointerException",
+        title="Incompatible Null State in Order Cancellation",
+        language="java",
+        code="""import java.util.HashMap;
+import java.util.Map;
+
+class OrderManager {
+    public String orderId;
+    public String status;
+    public Map<String, Integer> items;
+
+    public OrderManager(String orderId) {
+        this.orderId = orderId;
+        this.status = "pending";
+        this.items = new HashMap<>();
+    }
+
+    public void addItem(String itemName, int quantity) {
+        this.items.put(itemName, quantity);
+    }
+
+    public void cancelOrder() {
+        this.status = "cancelled";
+        this.items = null;
+    }
+
+    public int getTotalItems() {
+        int total = 0;
+        for (int q : this.items.values()) {
+            total += q;
+        }
+        return total;
+    }
+}
+
+public class Main {
+    public static int processCancellation() {
+        OrderManager manager = new OrderManager("ORD-501");
+        manager.addItem("keyboard", 1);
+        manager.addItem("mouse", 2);
+        manager.cancelOrder();
+        return manager.getTotalItems();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(processCancellation());
+    }
+}""",
+        stdin="",
+        expected_error="NullPointerException",
+        description="An order management class resets an instance attribute map to null upon cancellation, breaking subsequent method calls expecting a collection.",
+        expected_root_cause="cancelOrder() resets this.items to null instead of clearing the map (this.items.clear() or this.items = new HashMap<>()), causing getTotalItems() to throw a NullPointerException when attempting to iterate this.items.values().",
+        expected_behavior="cancelOrder() should reset this.items to an empty map or clear it, so getTotalItems() safely computes a sum of 0 items without a NullPointerException."
+    ),
+    "B009": BenchmarkCase(
+        bug_id="B009",
+        category="NullPointerException",
+        title="Case-Sensitive Lookup in Overridden Polymorphic Method",
+        language="java",
+        code="""import java.util.HashMap;
+import java.util.Map;
+
+class BaseAccount {
+    public String accountHolder;
+    public double balance;
+
+    public BaseAccount(String accountHolder, double initialBalance) {
+        this.accountHolder = accountHolder;
+        this.balance = initialBalance;
+    }
+
+    public double calculateInterest() {
+        return this.balance * 0.01;
+    }
+
+    public double applyAnnualCharge() {
+        double interest = this.calculateInterest();
+        this.balance += interest;
+        return this.balance;
+    }
+}
+
+class PremiumAccount extends BaseAccount {
+    public String tier;
+
+    public PremiumAccount(String accountHolder, double initialBalance, String tier) {
+        super(accountHolder, initialBalance);
+        this.tier = tier;
+    }
+
+    @Override
+    public double calculateInterest() {
+        Map<String, Double> tierMultipliers = new HashMap<>();
+        tierMultipliers.put("gold", 0.05);
+        tierMultipliers.put("platinum", 0.08);
+        Double multiplier = tierMultipliers.get(this.tier);
+        return this.balance * multiplier;
+    }
+}
+
+public class Main {
+    public static double runAccounting() {
+        PremiumAccount account = new PremiumAccount("Dr. Smith", 10000.0, "Gold");
+        return account.applyAnnualCharge();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(runAccounting());
+    }
+}""",
+        stdin="",
+        expected_error="NullPointerException",
+        description="A derived class overrides a base calculation method called polymorphically by a base method, but performs a case-sensitive map lookup against unnormalized instance state.",
+        expected_root_cause="PremiumAccount.calculateInterest() overrides BaseAccount.calculateInterest() and attempts tierMultipliers.get(this.tier) without normalizing the string, returning null for 'Gold' and throwing NullPointerException upon unboxing.",
+        expected_behavior="PremiumAccount.calculateInterest() should normalize this.tier using .toLowerCase(), allowing tierMultipliers.get('gold') to resolve to 0.05 and returning an updated balance of 10500.0."
+    ),
+    "B010": BenchmarkCase(
+        bug_id="B010",
+        category="ArrayIndexOutOfBoundsException",
+        title="Multi-Frame Buffer Offset Boundary Overshoot",
+        language="java",
+        code="""import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static byte readChunkByte(byte[] buffer, int offset) {
+        return buffer[offset];
+    }
+
+    public static byte unpackHeaderField(byte[] dataBytes, int startPos, int length) {
+        int endPos = startPos + length;
+        return readChunkByte(dataBytes, endPos);
+    }
+
+    public static byte parsePacketMetadata(Map<String, Object> rawPacket) {
+        byte[] header = (byte[]) rawPacket.getOrDefault("header_bytes", new byte[0]);
+        int fieldLength = 8;
+        return unpackHeaderField(header, 0, fieldLength);
+    }
+
+    public static byte routeNetworkPacket() {
+        Map<String, Object> packet = new HashMap<>();
+        packet.put("packet_id", 1001);
+        packet.put("header_bytes", "PKT_HEAD".getBytes(StandardCharsets.UTF_8));
+        return parsePacketMetadata(packet);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(routeNetworkPacket());
+    }
+}""",
+        stdin="",
+        expected_error="ArrayIndexOutOfBoundsException",
+        description="A call chain of 4 methods passes an off-by-one computed boundary down to a low-level buffer reader, triggering an out-of-bounds array access several frames deep.",
+        expected_root_cause="unpackHeaderField() computes endPos = startPos + length (8) and passes it as a single-byte index to readChunkByte(), which attempts to access buffer[8] on an 8-byte array whose valid 0-based indices are 0 to 7.",
+        expected_behavior="unpackHeaderField() should pass startPos (or read within bounds 0 to length - 1) rather than endPos to readChunkByte(), avoiding ArrayIndexOutOfBoundsException and returning the packet byte."
+    ),
+}
 
 
-def get_benchmark(bug_id: str) -> BenchmarkCase | None:
-    """Retrieve benchmark case by ID (case-insensitive)."""
-    return BENCHMARKS.get(bug_id.strip().upper())
+def get_all_benchmarks(language: str = "python") -> list[BenchmarkCase]:
+    """Return all predefined benchmark cases in order for the specified language."""
+    if language and language.strip().lower() == "java":
+        return list(JAVA_BENCHMARKS.values())
+    return list(PYTHON_BENCHMARKS.values())
+
+
+def get_benchmark(bug_id: str, language: str = "python") -> BenchmarkCase | None:
+    """Retrieve benchmark case by ID and language (case-insensitive)."""
+    clean_id = bug_id.strip().upper()
+    if language and language.strip().lower() == "java":
+        return JAVA_BENCHMARKS.get(clean_id)
+    return PYTHON_BENCHMARKS.get(clean_id)
+

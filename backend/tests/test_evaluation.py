@@ -1062,5 +1062,167 @@ def test_fix_correct_tri_state_serialization(tmp_path):
     assert by_id["eval_tri_3"].fix_correct is None
 
 
+def test_java_benchmarks_all_10_present():
+    """Verify all 10 Java benchmarks B001 to B010 are defined with correct metadata and Java syntax."""
+    java_benchmarks = get_all_benchmarks("java")
+    assert len(java_benchmarks) == 10
 
+    expected_ids = [f"B{i:03d}" for i in range(1, 11)]
+    assert [b.bug_id for b in java_benchmarks] == expected_ids
+
+    for b in java_benchmarks:
+        assert b.language == "java"
+        assert "class Main" in b.source_code or "public class" in b.source_code
+        assert len(b.expected_failure) > 0
+        assert len(b.expected_root_cause) > 0
+        assert len(b.expected_behavior) > 0
+
+    # Ensure Python benchmarks are distinct and unchanged
+    python_benchmarks = get_all_benchmarks("python")
+    assert len(python_benchmarks) == 10
+    for b in python_benchmarks:
+        assert b.language == "python"
+        assert "def " in b.source_code
+
+    # Compare B001 Java vs Python
+    b1_java = get_benchmark("B001", "java")
+    b1_py = get_benchmark("B001", "python")
+    assert b1_java.language == "java"
+    assert b1_py.language == "python"
+    assert b1_java.source_code != b1_py.source_code
+
+
+def test_benchmark_api_language_query_parameter():
+    """Verify GET /evaluation/benchmarks and /evaluation/benchmarks/{id} respect language query param."""
+    # List java benchmarks
+    resp_java = client.get("/evaluation/benchmarks?language=java")
+    assert resp_java.status_code == 200
+    data_java = resp_java.json()
+    assert len(data_java) == 10
+    assert all(item["language"] == "java" for item in data_java)
+
+    # List python benchmarks
+    resp_py = client.get("/evaluation/benchmarks?language=python")
+    assert resp_py.status_code == 200
+    data_py = resp_py.json()
+    assert len(data_py) == 10
+    assert all(item["language"] == "python" for item in data_py)
+
+    # Get single Java benchmark
+    resp_b2_java = client.get("/evaluation/benchmarks/B002?language=java")
+    assert resp_b2_java.status_code == 200
+    b2_java = resp_b2_java.json()
+    assert b2_java["bug_id"] == "B002"
+    assert b2_java["language"] == "java"
+    assert "ArrayIndexOutOfBoundsException" in b2_java["expected_failure"]
+
+    # Get single Python benchmark
+    resp_b2_py = client.get("/evaluation/benchmarks/B002?language=python")
+    assert resp_b2_py.status_code == 200
+    b2_py = resp_b2_py.json()
+    assert b2_py["bug_id"] == "B002"
+    assert b2_py["language"] == "python"
+    assert "IndexError" in b2_py["expected_failure"]
+
+
+def test_context_reduction_percent_pairing(tmp_path):
+    """Verify context reduction % calculation, baseline exclusion, unpaired handling, negative values, and language isolation."""
+    logger = ExperimentLogger(data_dir=tmp_path)
+
+    # 1. Standard valid pair (Baseline: 1000 chars, Dynamic: 400 chars -> 60.0% reduction)
+    rec_b1 = ExperimentRecord(
+        evaluation_id="eval_pair_1",
+        experiment_id="eval_pair_1_baseline",
+        bug_id="B001",
+        mode="baseline",
+        language="python",
+        model="openrouter/free",
+        context_chars=1000,
+    )
+    rec_d1 = ExperimentRecord(
+        evaluation_id="eval_pair_1",
+        experiment_id="eval_pair_1_dynamic",
+        bug_id="B001",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=400,
+    )
+    logger.log_experiment(rec_b1)
+    logger.log_experiment(rec_d1)
+
+    # 2. Unpaired dynamic run (no baseline with eval_pair_2)
+    rec_d2 = ExperimentRecord(
+        evaluation_id="eval_pair_2",
+        experiment_id="eval_pair_2_dynamic",
+        bug_id="B002",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=500,
+    )
+    logger.log_experiment(rec_d2)
+
+    # 3. Negative reduction (Dynamic context size > Baseline context size)
+    rec_b3 = ExperimentRecord(
+        evaluation_id="eval_pair_3",
+        experiment_id="eval_pair_3_baseline",
+        bug_id="B003",
+        mode="baseline",
+        language="python",
+        model="openrouter/free",
+        context_chars=500,
+    )
+    rec_d3 = ExperimentRecord(
+        evaluation_id="eval_pair_3",
+        experiment_id="eval_pair_3_dynamic",
+        bug_id="B003",
+        mode="dynamic",
+        language="python",
+        model="openrouter/free",
+        context_chars=600,  # +20% expansion -> -20% reduction
+    )
+    logger.log_experiment(rec_b3)
+    logger.log_experiment(rec_d3)
+
+    # 4. Cross-language isolation (Baseline python, Dynamic java for same eval_id)
+    rec_b4 = ExperimentRecord(
+        evaluation_id="eval_cross",
+        experiment_id="eval_cross_baseline",
+        bug_id="B004",
+        mode="baseline",
+        language="python",
+        model="openrouter/free",
+        context_chars=1000,
+    )
+    rec_d4 = ExperimentRecord(
+        evaluation_id="eval_cross",
+        experiment_id="eval_cross_dynamic",
+        bug_id="B004",
+        mode="dynamic",
+        language="java",
+        model="openrouter/free",
+        context_chars=300,
+    )
+    logger.log_experiment(rec_b4)
+    logger.log_experiment(rec_d4)
+
+    # Query experiments
+    experiments = logger.get_experiments()
+    by_id = {e.experiment_id: e for e in experiments}
+
+    # Verify Pair 1
+    assert by_id["eval_pair_1_baseline"].context_reduction_percent is None
+    assert by_id["eval_pair_1_dynamic"].context_reduction_percent == pytest.approx(60.0)
+
+    # Verify Unpaired 2
+    assert by_id["eval_pair_2_dynamic"].context_reduction_percent is None
+
+    # Verify Negative reduction 3 (not clamped to 0)
+    assert by_id["eval_pair_3_baseline"].context_reduction_percent is None
+    assert by_id["eval_pair_3_dynamic"].context_reduction_percent == pytest.approx(-20.0)
+
+    # Verify Cross-language isolation 4 (Dynamic java cannot pair with baseline python)
+    assert by_id["eval_cross_baseline"].context_reduction_percent is None
+    assert by_id["eval_cross_dynamic"].context_reduction_percent is None
 

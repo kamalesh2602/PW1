@@ -1854,6 +1854,10 @@ html, body {
   border-color: var(--border-focus);
 }
 
+.benchmark-dropdown.language-dropdown {
+  min-width: 110px;
+}
+
 .load-code-btn {
   background: var(--bg-surface-raised);
   border: 1px solid var(--border-color);
