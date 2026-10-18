@@ -213,8 +213,23 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
       let hasArtifactData = false;
 
       if (sumRes.status === 'fulfilled' && sumRes.value) {
-        setInspectionSummary(sumRes.value);
+        const sumData = sumRes.value;
+        setInspectionSummary(sumData);
         hasArtifactData = true;
+        if (sumData.baseline && sumData.dynamic) {
+          setComparisonResult({
+            evaluation_id: sumData.evaluation_id,
+            bug_id: sumData.bug_id,
+            language: sumData.language,
+            model: sumData.model,
+            status: sumData.status,
+            context_reduction_percent: sumData.context_reduction_percent ?? sumData.metrics?.context_reduction_percent,
+            token_reduction_percent: sumData.token_reduction_percent ?? sumData.metrics?.token_reduction_percent,
+            time_difference_ms: sumData.time_difference_ms ?? sumData.metrics?.time_difference_ms ?? 0,
+            baseline: sumData.baseline,
+            dynamic: sumData.dynamic,
+          });
+        }
       } else {
         setInspectionSummary(null);
       }
@@ -493,32 +508,6 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                   : 'Provider metadata unavailable'}
               </span>
             </div>
-
-            <div className="kpi-card">
-              <span className="kpi-label">Debugging Effectiveness</span>
-              <div className="kpi-value">
-                {comparisonResult.dynamic.fix_correct === true ? (
-                  <span className="text-success flex-row items-center gap-1">
-                    <CheckCircle2 size={16} /> Validated
-                  </span>
-                ) : comparisonResult.dynamic.fix_correct === false ? (
-                  <span className="text-error flex-row items-center gap-1">
-                    <XCircle size={16} /> Failed
-                  </span>
-                ) : comparisonResult.dynamic.re_execution_passed ? (
-                  <span className="text-warning flex-row items-center gap-1">
-                    Passed (Exit 0)
-                  </span>
-                ) : (
-                  <span className="text-error flex-row items-center gap-1">
-                    <XCircle size={16} /> Needs Review
-                  </span>
-                )}
-              </div>
-              <span className="kpi-sub">
-                Root Cause: {comparisonResult.dynamic.root_cause_identified ? 'Yes' : 'No'} • Re-exec: {comparisonResult.dynamic.re_execution_passed ? 'Pass' : 'Fail'}
-              </span>
-            </div>
           </div>
 
           <div className="comparison-table-wrapper">
@@ -657,69 +646,6 @@ export const EvaluationSection = ({ onLoadBenchmarkCode }) => {
                       ? `+${comparisonResult.time_difference_ms.toFixed(1)} ms`
                       : `${comparisonResult.time_difference_ms.toFixed(1)} ms`}
                   </td>
-                </tr>
-
-                {/* Group C: Debugging Effectiveness */}
-                <tr className="table-group-header">
-                  <td colSpan={4}>C. Debugging Effectiveness</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">Root Cause Identified</td>
-                  <td>
-                    {comparisonResult.baseline.root_cause_identified ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Yes</span>
-                    ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> No</span>
-                    )}
-                  </td>
-                  <td>
-                    {comparisonResult.dynamic.root_cause_identified ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Yes</span>
-                    ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> No</span>
-                    )}
-                  </td>
-                  <td>Root cause diagnosis outcome</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">Re-execution Passed</td>
-                  <td>
-                    {comparisonResult.baseline.re_execution_passed ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Passed</span>
-                    ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> Failed</span>
-                    )}
-                  </td>
-                  <td>
-                    {comparisonResult.dynamic.re_execution_passed ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Passed</span>
-                    ) : (
-                      <span className="outcome-pill failure"><XCircle size={12} /> Failed</span>
-                    )}
-                  </td>
-                  <td>Sandbox exit code 0</td>
-                </tr>
-                <tr>
-                  <td className="metric-name">Fix Correct</td>
-                  <td>
-                    {comparisonResult.baseline.fix_correct === true ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Validated</span>
-                    ) : comparisonResult.baseline.fix_correct === false ? (
-                      <span className="outcome-pill failure"><XCircle size={12} /> Failed</span>
-                    ) : (
-                      <span className="outcome-pill neutral">Not Validated</span>
-                    )}
-                  </td>
-                  <td>
-                    {comparisonResult.dynamic.fix_correct === true ? (
-                      <span className="outcome-pill success"><CheckCircle2 size={12} /> Validated</span>
-                    ) : comparisonResult.dynamic.fix_correct === false ? (
-                      <span className="outcome-pill failure"><XCircle size={12} /> Failed</span>
-                    ) : (
-                      <span className="outcome-pill neutral">Not Validated</span>
-                    )}
-                  </td>
-                  <td>Deterministic semantic check</td>
                 </tr>
               </tbody>
             </table>

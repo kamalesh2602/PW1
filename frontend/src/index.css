@@ -2023,7 +2023,7 @@ html, body {
 /* KPI Summary Metric Cards */
 .comparison-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
@@ -2679,9 +2679,9 @@ html, body {
    Responsive Breakpoints
    ========================================================================== */
 
-@media (max-width: 1100px) {
+@media (max-width: 992px) {
   .comparison-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
 
