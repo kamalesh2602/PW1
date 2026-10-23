@@ -52,9 +52,9 @@ In practical terms, the system allows a developer to:
 Ensure the following tools are installed on your development machine:
 
 - **Git**: For version control (`git --version`)
-- **Python**: Version 3.10 or higher (recommended 3.11+) (`python --version`)
-- **Node.js & npm**: Node.js 18+ and npm 9+ (`node --version`, `npm --version`)
-- **Docker** *(Optional but recommended)*: Docker Desktop / Docker Engine for sandboxed container execution (`docker --version`). If Docker is not running, the system automatically falls back to controlled local execution.
+- **Docker & Docker Compose**: Docker Desktop / Docker Engine with Compose v2+ (`docker --version`, `docker compose version`) for one-command startup and sandboxed container execution.
+- **Python** *(Optional if using Docker Compose)*: Version 3.10 or higher (recommended 3.11+) (`python --version`) for running the backend manually without Docker.
+- **Node.js & npm** *(Optional if using Docker Compose)*: Node.js 18+ and npm 9+ (`node --version`, `npm --version`) for running the frontend manually without Docker.
 - **OpenRouter API Key** *(Optional, required for AI debugging/evaluation features)*: An API key from [OpenRouter](https://openrouter.ai/) for LLM reasoning.
 
 ---
@@ -250,11 +250,25 @@ The frontend application will be live at:
 
 ## 8. Docker / Execution Environment
 
-The system includes containerized execution sandboxes to isolate user-submitted code from the host machine.
+The system provides two deployment and execution models:
+1. **Docker Compose**: Orchestrates the entire application (Vite frontend, FastAPI backend with integrated MCP server) using a single command.
+2. **Containerized Sandboxes**: Isolates user-submitted Python and Java code from the host machine using unprivileged containers.
 
-### Why Docker is Used
-- **Security & Isolation**: Code runs inside an unprivileged container with network access disabled (`--network none`) and bounded resource limits (memory capped at 256MB, CPU capped at 1 core).
-- **Consistent Execution**: Standardized runtime environments eliminate differences between host environments.
+### Docker Compose Architecture
+The root `docker-compose.yml` configures two coordinated services:
+- **`backend`**: FastAPI application running on port `8000`. Mounts `./backend/data` to persist M8 evaluation datasets, `./backend/logs` for operational logging, and `/var/run/docker.sock` to manage execution sandboxes. The Model Context Protocol (MCP) server runs in-process inside FastAPI at `/mcp`.
+- **`frontend`**: Vite/React interface running on port `5173` bound to `0.0.0.0`. Communicates with the backend at `http://localhost:8000` (browser-accessible host address).
+
+### Docker Daemon Socket Access & Security Implications
+To launch execution sandboxes from within the containerized backend, the backend service mounts the host Docker socket:
+```yaml
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
+```
+> [!WARNING]
+> **Security Implications**: Mounting `/var/run/docker.sock` grants the backend container full administrative access to the host Docker daemon.
+> - **Sandbox Safeguards**: The backend uses this privilege strictly to launch isolated, unprivileged sandbox containers with network disabled (`--network none`), limited memory (`256MB`), limited CPU (`1.0`), and non-root execution (`sandboxuser`, UID 1000).
+> - **Environment Scope**: Because Docker socket access allows arbitrary container operations on the host, this configuration is intended for local research and development environments. Do not expose the backend directly to untrusted public networks without an authentication proxy.
 
 ### Sandbox Images
 The repository defines two sandbox container images in `backend/docker/`:
@@ -267,8 +281,8 @@ The repository defines two sandbox container images in `backend/docker/`:
    - Base image: `eclipse-temurin:17-jdk-alpine`
    - User: Non-root user `sandboxuser` (UID 1000)
 
-### Building the Sandbox Images Locally (Optional)
-If you want to run code through Docker containers, build the images before running the backend:
+### Building the Sandbox Images Locally
+Before running containerized code execution, build the sandbox images:
 
 ```bash
 # Build the Python sandbox image
@@ -279,32 +293,78 @@ docker build -t runtime-debugger-java backend/docker/java
 ```
 
 ### Local Fallback Mode
-If Docker is not running or the Docker images are not built, the backend automatically uses **local subprocess fallback execution** (`sys.executable`). This ensures that developers can run and test code immediately without Docker installed.
+If Docker is not running or sandbox images are not built, the backend automatically uses **local subprocess fallback execution** (`sys.executable` and local `javac`/`java`). This ensures immediate functionality without Docker installed.
 
 ---
 
 ## 9. Running the Project
 
-To run the entire system locally, open two terminal windows:
+You can run the project either using **Docker Compose** (recommended for one-command startup) or **manually in separate terminals**.
 
-### Terminal 1 — Backend
+### Option A: One-Command Startup with Docker Compose (Recommended)
+
+Start the entire application (frontend, backend, and MCP server) with:
+
+```bash
+docker compose up --build
+```
+
+#### Accessing the Application
+- **Frontend UI**: `http://localhost:5173`
+- **Backend API**: `http://localhost:8000`
+- **Health Check**: `http://localhost:8000/health`
+- **Interactive API Docs (Swagger)**: `http://localhost:8000/docs`
+- **MCP Server Endpoint**: `http://localhost:8000/mcp`
+
+#### Viewing Logs
+View real-time aggregated logs or stream a specific service:
+
+```bash
+# View all logs in real-time
+docker compose logs -f
+
+# View backend logs only
+docker compose logs -f backend
+
+# View frontend logs only
+docker compose logs -f frontend
+```
+
+#### Stopping the Services
+To stop and remove containers while preserving persistent data:
+
+```bash
+docker compose down
+```
+
+#### Rebuilding After Changes
+If you update dependencies or source code:
+
+```bash
+docker compose up --build
+```
+
+### Option B: Manual Setup Without Docker Compose
+
+If you prefer running services directly on your host machine:
+
+#### Terminal 1 — Backend
 ```bash
 cd backend
-# Activate virtualenv (e.g. source venv/bin/activate or .\venv\Scripts\Activate.ps1)
+# Activate virtual environment
+# Linux/macOS: source venv/bin/activate
+# Windows PowerShell: .\venv\Scripts\Activate.ps1
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Terminal 2 — Frontend
+#### Terminal 2 — Frontend
 ```bash
 cd frontend
 npm run dev
 ```
 
-### Accessing the Application
-Open your web browser and navigate to:
-```text
-http://localhost:5173
-```
+#### Accessing the Application
+Navigate to `http://localhost:5173` in your browser.
 
 ---
 
@@ -526,18 +586,31 @@ Current workflow behavior:
 
 ## 17. Quick Start
 
-Run the application locally in four simple steps:
+### Quick Start with Docker Compose (Recommended)
+Run the complete application in three commands:
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/kamalesh2602/PW1.git
 cd PW1
 
-# 2. Configure environment files
+# 2. Configure environment (optional overrides)
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 
-# 3. Start Backend (Terminal 1)
+# 3. Start everything with one command
+docker compose up --build
+```
+
+Open `http://localhost:5173` in your browser.
+
+---
+
+### Alternative: Manual Local Startup
+To run without Docker containers:
+
+```bash
+# 1. Start Backend (Terminal 1)
 cd backend
 python -m venv venv
 # Linux/macOS: source venv/bin/activate | Windows PowerShell: .\venv\Scripts\Activate.ps1
@@ -545,13 +618,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 
-# 4. Start Frontend (Terminal 2)
+# 2. Start Frontend (Terminal 2)
 cd ../frontend
 npm install
 npm run dev
 ```
-
-Open `http://localhost:5173` in your browser.
 
 ---
 

@@ -2,7 +2,9 @@ import abc
 import sys
 import time
 import os
+import io
 import shutil
+import tarfile
 import tempfile
 import subprocess
 from typing import Tuple, Optional
@@ -104,31 +106,29 @@ class BaseExecutor(abc.ABC):
         cmd = f"{base_cmd} < input.txt"
         start_time = time.time()
 
-        # Mount directory as read-only or read-write into container /sandbox
-        volumes = {
-            os.path.abspath(temp_dir): {
-                'bind': '/sandbox',
-                'mode': 'rw'
-            }
-        }
+        # Prepare tar archive containing all prepared files from temp_dir
+        tar_stream = io.BytesIO()
+        with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+            for item in os.listdir(temp_dir):
+                full_path = os.path.join(temp_dir, item)
+                tar.add(full_path, arcname=item)
+        tar_stream.seek(0)
 
         container = None
         try:
-            # Launch container with security controls
-            container = client.containers.run(
+            # Launch container with security controls and stream files directly into /sandbox
+            container = client.containers.create(
                 image=self.image_name,
                 command=f"sh -c '{cmd}'",
-                volumes=volumes,
                 working_dir='/sandbox',
                 network_mode='none',
                 mem_limit='256m',
                 nano_cpus=1000000000, # 1.0 CPU
                 user='1000:1000',
-                detach=True,
-                stdout=True,
-                stderr=True,
                 security_opt=['no-new-privileges:true']
             )
+            container.put_archive('/sandbox', tar_stream.getvalue())
+            container.start()
 
             # Wait for completion with timeout
             result = container.wait(timeout=int(self.timeout))
@@ -137,6 +137,18 @@ class BaseExecutor(abc.ABC):
             exit_code = result.get('StatusCode', 0)
             stdout = container.logs(stdout=True, stderr=False).decode('utf-8', errors='replace')
             stderr = container.logs(stdout=False, stderr=True).decode('utf-8', errors='replace')
+
+            # Extract any generated trace artifact back to temp_dir before container removal
+            try:
+                bits, _ = container.get_archive('/sandbox/.runtime_trace.json')
+                trace_tar = io.BytesIO(b''.join(bits))
+                with tarfile.open(fileobj=trace_tar) as tar:
+                    if hasattr(tarfile, 'data_filter'):
+                        tar.extractall(path=temp_dir, filter='data')
+                    else:
+                        tar.extractall(path=temp_dir)
+            except Exception:
+                pass
 
             status = self._determine_status(exit_code, stderr)
 

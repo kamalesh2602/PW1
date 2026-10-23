@@ -1759,3 +1759,735 @@ ValueError: "RetrievalDecision" object has no field "execution_id"
 2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
 2026-10-18 13:35:45 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
 2026-10-18 13:35:45 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-18 13:42:17 [INFO] [app.main]: PW1 API application starting up...
+2026-10-18 13:42:17 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-18 14:02:42 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 16:01:51 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 16:01:51 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 16:02:54 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 16:03:11 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 16:03:11 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 16:03:54 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "/app/app/agent/debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-22 16:04:10 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_source_context'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-22 16:04:10 [INFO] [app.curator]: curation_summary: execution_id=cb6616c2-ec1d-405a-bf01-71ea966f4920 mcp_calls=4 context_size=1529 time_spent=4.69s stop_reason=curator_error
+2026-10-22 16:04:41 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'error'
+Traceback (most recent call last):
+  File "/app/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 417, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 471, in _do_run_paired_experiment
+    dynamic_record = await self.run_experiment(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 73, in run_experiment
+    return await self._do_run_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 245, in _do_run_experiment
+    validation_result = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+  File "/app/app/evaluation/service.py", line 567, in _validate_semantic_correctness
+    if clean_bug_id == "B001":
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'clean_bug_id' where it is not associated with a value
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/evaluation/routes.py", line 125, in run_paired_evaluation
+    logger.error("Paired evaluation failed: %s", exc, exc_info=True)
+    ^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'error'
+2026-10-22 16:04:56 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 21:40:28 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 21:40:28 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 21:41:33 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-22 21:43:40 [WARNING] [app.curator]: curation_decision_none: execution_id=9d3ea981-40be-4100-8ac2-3ae2a1f4fb6d
+2026-10-22 21:43:40 [INFO] [app.curator]: curation_summary: execution_id=9d3ea981-40be-4100-8ac2-3ae2a1f4fb6d mcp_calls=4 context_size=2276 time_spent=90.69s stop_reason=no_further_context_available
+2026-10-22 21:44:37 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 21:51:32 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 21:51:32 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 21:51:44 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 21:51:44 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 21:53:09 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_source_context'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-22 21:53:09 [INFO] [app.curator]: curation_summary: execution_id=88a9916a-9d8a-4226-aebf-c47eca29c647 mcp_calls=3 context_size=1236 time_spent=28.03s stop_reason=curator_error
+2026-10-22 21:53:17 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Structured model returned None for dynamic diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 247, in _diagnose_dynamic
+    raise ValueError("Structured model returned None for dynamic diagnosis")
+ValueError: Structured model returned None for dynamic diagnosis
+2026-10-22 21:54:26 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-22 21:57:15 [WARNING] [app.curator]: curation_decision_none: execution_id=0b4126c8-4132-44bc-92f8-87bad4dd5f27
+2026-10-22 21:57:16 [INFO] [app.curator]: curation_summary: execution_id=0b4126c8-4132-44bc-92f8-87bad4dd5f27 mcp_calls=4 context_size=2717 time_spent=150.26s stop_reason=no_further_context_available
+2026-10-22 22:24:48 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-22 16:56:06 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 16:56:06 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 17:19:03 [INFO] [app.main]: PW1 API application shutting down...
+ac314-e680-48d2-b027-3152bc612c11 mcp_calls=5 context_size=613 time_spent=114.52s stop_reason=root_cause_identified
+2026-10-22 22:32:36 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 17:19:15 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 17:19:15 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 17:27:08 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 22:57:20 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 22:57:20 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 22:57:46 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 17:28:12 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 17:28:12 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 17:37:20 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-22 17:37:35 [INFO] [app.main]: PW1 API application starting up...
+2026-10-22 17:37:35 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-22 17:42:38 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'error'
+Traceback (most recent call last):
+  File "/app/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 417, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 461, in _do_run_paired_experiment
+    baseline_record = await self.run_experiment(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 73, in run_experiment
+    return await self._do_run_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 245, in _do_run_experiment
+    validation_result = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+  File "/app/app/evaluation/service.py", line 567, in _validate_semantic_correctness
+    if clean_bug_id == "B001":
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'clean_bug_id' where it is not associated with a value
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/evaluation/routes.py", line 125, in run_paired_evaluation
+    logger.error("Paired evaluation failed: %s", exc, exc_info=True)
+    ^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'error'
+2026-10-22 17:45:24 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_source_context'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/app/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/usr/lib/python3.14/site-packages/langchain_core/runnables/config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/lib/python3.14/site-packages/langchain_core/output_parsers/openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-22 17:45:24 [INFO] [app.curator]: curation_summary: execution_id=857a03b7-d6f8-4208-8124-27549c4d0427 mcp_calls=4 context_size=1306 time_spent=3.94s stop_reason=curator_error
+2026-10-22 17:49:24 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'warning'
+Traceback (most recent call last):
+  File "/app/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 417, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 444, in _do_run_paired_experiment
+    raise ValueError("No valid code or benchmark found to evaluate.")
+ValueError: No valid code or benchmark found to evaluate.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/evaluation/routes.py", line 119, in run_paired_evaluation
+    logger.warning("Invalid paired evaluation request: %s", exc)
+    ^^^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'warning'
+2026-10-22 17:49:29 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'warning'
+Traceback (most recent call last):
+  File "/app/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 417, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 444, in _do_run_paired_experiment
+    raise ValueError("No valid code or benchmark found to evaluate.")
+ValueError: No valid code or benchmark found to evaluate.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/evaluation/routes.py", line 119, in run_paired_evaluation
+    logger.warning("Invalid paired evaluation request: %s", exc)
+    ^^^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'warning'
+2026-10-22 17:51:50 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-23 09:59:10 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 09:59:10 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 09:59:16 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-23 04:29:42 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 04:29:42 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 04:31:08 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'error'
+Traceback (most recent call last):
+  File "/app/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 417, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 461, in _do_run_paired_experiment
+    baseline_record = await self.run_experiment(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 73, in run_experiment
+    return await self._do_run_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/app/app/evaluation/service.py", line 245, in _do_run_experiment
+    validation_result = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+  File "/app/app/evaluation/service.py", line 567, in _validate_semantic_correctness
+    if clean_bug_id == "B001":
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'clean_bug_id' where it is not associated with a value
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/evaluation/routes.py", line 125, in run_paired_evaluation
+    logger.error("Paired evaluation failed: %s", exc, exc_info=True)
+    ^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'error'
+2026-10-23 04:31:33 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-23 10:01:39 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 10:01:39 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 10:02:24 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-23 10:03:19 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_stack_trace'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_stack_trace'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_stack_trace'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-23 10:03:19 [INFO] [app.curator]: curation_summary: execution_id=ca267036-248f-4876-88b0-7eecabb19779 mcp_calls=1 context_size=2 time_spent=19.51s stop_reason=curator_error
+2026-10-23 10:03:33 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Structured model returned None for dynamic diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 247, in _diagnose_dynamic
+    raise ValueError("Structured model returned None for dynamic diagnosis")
+ValueError: Structured model returned None for dynamic diagnosis
+2026-10-23 10:06:13 [INFO] [app.curator]: curation_summary: execution_id=c9458cee-09e1-4853-8bf4-5d46e4de928f mcp_calls=4 context_size=2467 time_spent=76.61s stop_reason=root_cause_identified
+2026-10-23 10:07:45 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-23 10:08:03 [WARNING] [app.curator]: curation_decision_none: execution_id=0578291f-565f-458a-add4-c0e864eebd6d
+2026-10-23 10:08:04 [INFO] [app.curator]: curation_summary: execution_id=0578291f-565f-458a-add4-c0e864eebd6d mcp_calls=1 context_size=2 time_spent=10.60s stop_reason=no_further_context_available
+2026-10-23 10:17:12 [WARNING] [app.curator]: curation_decision_none: execution_id=f45d395f-fbfa-4d24-949b-944a6d6a900e
+2026-10-23 10:17:13 [INFO] [app.curator]: curation_summary: execution_id=f45d395f-fbfa-4d24-949b-944a6d6a900e mcp_calls=1 context_size=2 time_spent=20.88s stop_reason=no_further_context_available
+2026-10-23 10:20:13 [WARNING] [app.curator]: curation_decision_none: execution_id=544536b5-8717-45b0-8da8-4f1222ad3b23
+2026-10-23 10:20:14 [INFO] [app.curator]: curation_summary: execution_id=544536b5-8717-45b0-8da8-4f1222ad3b23 mcp_calls=2 context_size=213 time_spent=92.30s stop_reason=no_further_context_available
+2026-10-23 10:21:10 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Structured model returned None for baseline diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 116, in _diagnose_baseline
+    raise ValueError("Structured model returned None for baseline diagnosis")
+ValueError: Structured model returned None for baseline diagnosis
+2026-10-23 10:21:45 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_stack_trace'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_stack_trace'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\runnables\config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\ELCOT\Desktop\PW1\backend\venv\Lib\site-packages\langchain_core\output_parsers\openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_stack_trace'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-23 10:21:45 [INFO] [app.curator]: curation_summary: execution_id=e081fca5-4ddd-483c-b298-bac83d2c5651 mcp_calls=1 context_size=2 time_spent=10.59s stop_reason=curator_error
+2026-10-23 10:21:57 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Structured model returned None for dynamic diagnosis
+Traceback (most recent call last):
+  File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 247, in _diagnose_dynamic
+    raise ValueError("Structured model returned None for dynamic diagnosis")
+ValueError: Structured model returned None for dynamic diagnosis

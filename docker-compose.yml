@@ -1,0 +1,59 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pw1-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      - PYTHON_IMAGE=${PYTHON_IMAGE:-runtime-debugger-python}
+      - JAVA_IMAGE=${JAVA_IMAGE:-runtime-debugger-java}
+      - EXECUTION_TIMEOUT=${EXECUTION_TIMEOUT:-5.0}
+      - MAX_MEMORY=${MAX_MEMORY:-256m}
+      - MAX_CPUS=${MAX_CPUS:-1.0}
+      - TRACE_MAX_EVENTS=${TRACE_MAX_EVENTS:-2000}
+      - TRACE_MAX_SOURCE_RADIUS=${TRACE_MAX_SOURCE_RADIUS:-50}
+      - TRACE_MAX_QUERY_EVENTS=${TRACE_MAX_QUERY_EVENTS:-500}
+      - LLM_MODEL=${LLM_MODEL:-openrouter/free}
+      - MAX_CONTEXT_CALLS=${MAX_CONTEXT_CALLS:-10}
+      - MAX_CONTEXT_EVENTS=${MAX_CONTEXT_EVENTS:-50}
+      - MAX_CONTEXT_LINES=${MAX_CONTEXT_LINES:-100}
+    env_file:
+      - path: ./backend/.env
+        required: false
+    volumes:
+      # Docker daemon socket for launching sandboxed execution containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Persist M8 evaluation datasets and experiment artifacts across restarts
+      - ./backend/data:/app/data
+      # Persist operational logs across restarts
+      - ./backend/logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pw1-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      # Browser-accessible backend URL
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    env_file:
+      - path: ./frontend/.env
+        required: false
+    depends_on:
+      backend:
+        condition: service_healthy

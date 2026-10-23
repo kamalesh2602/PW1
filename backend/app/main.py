@@ -50,15 +50,14 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 # CORS configuration
-raw_cors = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
-origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
+raw_cors = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,https://pw-1-two.vercel.app")
+default_origins = ["http://localhost:5173", "http://127.0.0.1:5173", "https://pw-1-two.vercel.app"]
+env_origins = [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
+origins = list(dict.fromkeys(default_origins + env_origins))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://pw-1-two.vercel.app",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

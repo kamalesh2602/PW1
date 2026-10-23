@@ -26,6 +26,22 @@ def test_python_successful_execution():
     assert data["execution_time"] >= 0.0
 
 
+def test_python_stdin_execution():
+    payload = {
+        "language": "python",
+        "code": "name = input()\nprint(f'Hello {name}!')",
+        "stdin": "PW1User\n"
+    }
+    response = client.post("/execute", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["language"] == "python"
+    assert "Hello PW1User!" in data["stdout"]
+    assert "cannot open input.txt" not in data["stderr"]
+    assert data["exit_code"] == 0
+
+
 def test_python_runtime_error():
     payload = {
         "language": "python",
