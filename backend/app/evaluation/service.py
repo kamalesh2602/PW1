@@ -12,6 +12,7 @@ from threading import Lock
 from typing import Any, Optional
 
 from app.agent.fixer import FixerAgent
+from app.agent.llm import get_model_name
 from app.evaluation.benchmarks import get_benchmark
 from app.evaluation.logger import ExperimentLogger, logger as default_logger
 from app.evaluation.models import ComparisonResult, ExperimentRecord
@@ -99,7 +100,7 @@ class EvaluationService:
         except ValueError:
             lang_enum = ExecutionLanguage.PYTHON
 
-        model_name = os.getenv("LLM_MODEL", "openrouter/free")
+        model_name = get_model_name()
         now_utc = datetime.now(timezone.utc)
         timestamp = now_utc.isoformat()
 
@@ -551,6 +552,8 @@ class EvaluationService:
         """
         if not fixed_code or not fixed_code.strip():
             return False
+
+        clean_bug_id = bug_id.strip().upper() if bug_id else ""
 
         if language == ExecutionLanguage.JAVA:
             if "class " not in fixed_code:

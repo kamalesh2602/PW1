@@ -93,7 +93,7 @@ async def run_single_experiment(request: BenchmarkRunRequest) -> ExperimentRecor
         )
         return record
     except Exception as exc:
-        logger.error("Experiment execution failed: %s", exc, exc_info=True)
+        app_logger.error("Experiment execution failed: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="AI service is currently unavailable. Please try again later.",
@@ -116,13 +116,13 @@ async def run_paired_evaluation(request: PairedBenchmarkRunRequest) -> Compariso
         )
         return result
     except ValueError as exc:
-        logger.warning("Invalid paired evaluation request: %s", exc)
+        app_logger.warning("Invalid paired evaluation request: %s", exc)
         raise HTTPException(
             status_code=400,
             detail="Invalid evaluation benchmark task.",
         )
     except Exception as exc:
-        logger.error("Paired evaluation failed: %s", exc, exc_info=True)
+        app_logger.error("Paired evaluation failed: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="AI service is currently unavailable. Please try again later.",

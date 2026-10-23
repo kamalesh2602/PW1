@@ -892,26 +892,6 @@ export const EvaluationSection = ({
                                 <span className="font-mono">{(baseData.total_experiment_time_ms ?? baseData.total_time_ms ?? 0).toFixed(1)} ms</span>
                               </div>
                               <div className="metric-row">
-                                <span>Root Cause Identified:</span>
-                                <span>{baseData.root_cause_identified ? 'Yes' : 'No'}</span>
-                              </div>
-                              <div className="metric-row">
-                                <span>Re-execution Passed:</span>
-                                <span>{baseData.re_execution_passed ? 'Passed (Exit 0)' : 'Failed'}</span>
-                              </div>
-                              <div className="metric-row">
-                                <span>Fix Correct:</span>
-                                <span className={
-                                  baseData.fix_correct === true
-                                    ? 'text-success font-semibold'
-                                    : baseData.fix_correct === false
-                                    ? 'text-error font-semibold'
-                                    : 'text-muted'
-                                }>
-                                  {baseData.fix_correct === true ? 'Validated' : baseData.fix_correct === false ? 'Failed' : 'Not Validated'}
-                                </span>
-                              </div>
-                              <div className="metric-row">
                                 <span>Stop Reason:</span>
                                 <span className="text-xs text-muted">{baseData.stop_reason || 'completed'}</span>
                               </div>
@@ -969,26 +949,6 @@ export const EvaluationSection = ({
                               <div className="metric-row">
                                 <span>Total Experiment Time:</span>
                                 <span className="font-mono">{(dynData.total_experiment_time_ms ?? dynData.total_time_ms ?? 0).toFixed(1)} ms</span>
-                              </div>
-                              <div className="metric-row">
-                                <span>Root Cause Identified:</span>
-                                <span>{dynData.root_cause_identified ? 'Yes' : 'No'}</span>
-                              </div>
-                              <div className="metric-row">
-                                <span>Re-execution Passed:</span>
-                                <span>{dynData.re_execution_passed ? 'Passed (Exit 0)' : 'Failed'}</span>
-                              </div>
-                              <div className="metric-row">
-                                <span>Fix Correct:</span>
-                                <span className={
-                                  dynData.fix_correct === true
-                                    ? 'text-success font-semibold'
-                                    : dynData.fix_correct === false
-                                    ? 'text-error font-semibold'
-                                    : 'text-muted'
-                                }>
-                                  {dynData.fix_correct === true ? 'Validated' : dynData.fix_correct === false ? 'Failed' : 'Not Validated'}
-                                </span>
                               </div>
                               <div className="metric-row">
                                 <span>Stop Reason:</span>

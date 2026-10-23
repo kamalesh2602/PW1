@@ -2491,3 +2491,1185 @@ Traceback (most recent call last):
   File "C:\Users\ELCOT\Desktop\PW1\backend\app\agent\debugger.py", line 247, in _diagnose_dynamic
     raise ValueError("Structured model returned None for dynamic diagnosis")
 ValueError: Structured model returned None for dynamic diagnosis
+2026-10-23 13:56:59 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 13:56:59 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 14:00:47 [WARNING] [app.curator]: LLM error during curation: OutputParserException("Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE ")
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/output_parsers/openai_tools.py", line 359, in parse_result
+    tool = name_dict[res["type"]]
+           ~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'get_source_context'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/output_parsers/base.py", line 234, in ainvoke
+    return await self._acall_with_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 2352, in _acall_with_config
+    output: Output = await coro_with_context(coro, context)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/output_parsers/base.py", line 301, in aparse_result
+    return await run_in_executor(None, self.parse_result, result, partial=partial)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/config.py", line 707, in run_in_executor
+    return await asyncio.get_running_loop().run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/config.py", line 698, in wrapper
+    return func(*args, **kwargs)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/output_parsers/openai_tools.py", line 365, in parse_result
+    raise OutputParserException(msg) from e
+langchain_core.exceptions.OutputParserException: Unknown tool type: 'get_source_context'. Available tools: RetrievalDecision
+For troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE 
+2026-10-23 14:00:47 [INFO] [app.curator]: curation_summary: execution_id=abaa29b9-180b-4a65-886a-6d25cdf05fbc mcp_calls=4 context_size=1457 time_spent=12.49s stop_reason=curator_error
+2026-10-23 14:03:01 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'error'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 417, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 461, in _do_run_paired_experiment
+    baseline_record = await self.run_experiment(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 73, in run_experiment
+    return await self._do_run_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 245, in _do_run_experiment
+    validation_result = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 567, in _validate_semantic_correctness
+    if clean_bug_id == "B001":
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'clean_bug_id' where it is not associated with a value
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/app/evaluation/routes.py", line 125, in run_paired_evaluation
+    logger.error("Paired evaluation failed: %s", exc, exc_info=True)
+    ^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'error'
+2026-10-23 14:05:13 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-23 14:05:29 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 14:05:29 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 14:05:48 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:05:48 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:05:49 [WARNING] [app.curator]: LLM error during curation: UnauthorizedResponseError(message='Missing Authentication header', status_code=401, body='{"error":{"message":"Missing Authentication header","code":401}}', headers=Headers({'date': 'Fri, 23 Oct 2026 08:35:49 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'X-Generation-Id,X-Provider-Name,request-id,cf-ray', 'set-cookie': '__cf_bm=03aHzojYbkqkL9OQU9miHZKkOt5jXDKGXUGHbD3o3ug-1792744549.2232237-1.0.1.1-PIFUCU8A1cjB3phxOxfq.zxu9MRgDCYae6uZttxCDUbVYh_uXXhTSiORyz7DZun.pMaXyvImoNaw5E0OA5fLwRSiq6mB6pgNJvl9enJGzHKto6aa0DQD6zPzx7kWbz81; HttpOnly; SameSite=None; Secure; Path=/; Domain=openrouter.ai; Expires=Fri, 23 Oct 2026 09:05:49 GMT', 'permissions-policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'referrer-policy': 'no-referrer, strict-origin-when-cross-origin', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': 'a4ef6918aa047fdf-MAA'}), raw_response=<Response [401 Unauthorized]>, data=UnauthorizedResponseErrorData(error=UnauthorizedResponseErrorData(code=401, message='Missing Authentication header', metadata=Unset()), openrouter_metadata=Unset(), user_id=Unset()))
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:05:49 [INFO] [app.curator]: curation_summary: execution_id=3a277036-e0d7-422d-b702-5dd41a314e0f mcp_calls=4 context_size=1457 time_spent=0.16s stop_reason=curator_error
+2026-10-23 14:05:49 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:05:49 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:20 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:20 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:21 [WARNING] [app.curator]: LLM error during curation: UnauthorizedResponseError(message='Missing Authentication header', status_code=401, body='{"error":{"message":"Missing Authentication header","code":401}}', headers=Headers({'date': 'Fri, 23 Oct 2026 08:41:21 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'X-Generation-Id,X-Provider-Name,request-id,cf-ray', 'permissions-policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'referrer-policy': 'no-referrer, strict-origin-when-cross-origin', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': 'a4ef7133ee403965-MAA'}), raw_response=<Response [401 Unauthorized]>, data=UnauthorizedResponseErrorData(error=UnauthorizedResponseErrorData(code=401, message='Missing Authentication header', metadata=Unset()), openrouter_metadata=Unset(), user_id=Unset()))
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:21 [INFO] [app.curator]: curation_summary: execution_id=11b071f4-0879-477f-be82-a5f7e1917d1e mcp_calls=4 context_size=1457 time_spent=0.11s stop_reason=curator_error
+2026-10-23 14:11:21 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:21 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:39 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:40 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:40 [WARNING] [app.curator]: LLM error during curation: UnauthorizedResponseError(message='Missing Authentication header', status_code=401, body='{"error":{"message":"Missing Authentication header","code":401}}', headers=Headers({'date': 'Fri, 23 Oct 2026 08:41:40 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'X-Generation-Id,X-Provider-Name,request-id,cf-ray', 'set-cookie': '__cf_bm=dGAa5vJBsMTO83o8ePKuSoHnf4rDhRExgX_UoVuZAIA-1792744900.3536677-1.0.1.1-LllcO_6a4yrXVAw.DnIorwJHa8GuYKXb.kzrm9DA2CpqqE5vmdhpUDSH4RcRA5PNaf7m3w3zFNysW_Z2tGmcQmr1z3OkgsD0hc7YlPeVffyBZzpA.jnZ7UChsywZWTMM; HttpOnly; SameSite=None; Secure; Path=/; Domain=openrouter.ai; Expires=Fri, 23 Oct 2026 09:11:40 GMT', 'permissions-policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'referrer-policy': 'no-referrer, strict-origin-when-cross-origin', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': 'a4ef71ab3bc1165f-MAA'}), raw_response=<Response [401 Unauthorized]>, data=UnauthorizedResponseErrorData(error=UnauthorizedResponseErrorData(code=401, message='Missing Authentication header', metadata=Unset()), openrouter_metadata=Unset(), user_id=Unset()))
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:40 [INFO] [app.curator]: curation_summary: execution_id=29b7a539-22de-4fb6-b766-db6391944265 mcp_calls=4 context_size=1457 time_spent=0.10s stop_reason=curator_error
+2026-10-23 14:11:40 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:11:40 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:12:11 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:12:11 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:12:12 [WARNING] [app.curator]: LLM error during curation: UnauthorizedResponseError(message='Missing Authentication header', status_code=401, body='{"error":{"message":"Missing Authentication header","code":401}}', headers=Headers({'date': 'Fri, 23 Oct 2026 08:42:12 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'X-Generation-Id,X-Provider-Name,request-id,cf-ray', 'set-cookie': '__cf_bm=XQjqv9Fx7JFUgJ9uyu1QEIKq8YPKGds57HDenRYdT1Q-1792744932.2514026-1.0.1.1-._nlNHpY_NxFGp5_66_5ztCeol9LLxbu1jIxWTnB5WJMVQgIT6vTQmZul97pcwUF1bFN4sd.vjDg3wSwDoiLdBrvPEGCFx9o.EDTDTSeK9uqepxIjvqPQSidV9aaQOeF; HttpOnly; SameSite=None; Secure; Path=/; Domain=openrouter.ai; Expires=Fri, 23 Oct 2026 09:12:12 GMT', 'permissions-policy': 'payment=(self "https://checkout.stripe.com" "https://connect-js.stripe.com" "https://js.stripe.com" "https://*.js.stripe.com" "https://hooks.stripe.com")', 'referrer-policy': 'no-referrer, strict-origin-when-cross-origin', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': 'a4ef72728a5658c9-MAA'}), raw_response=<Response [401 Unauthorized]>, data=UnauthorizedResponseErrorData(error=UnauthorizedResponseErrorData(code=401, message='Missing Authentication header', metadata=Unset()), openrouter_metadata=Unset(), user_id=Unset()))
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 357, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    ], **invoke_kwargs)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:12:12 [INFO] [app.curator]: curation_summary: execution_id=0d762e7d-6c93-460e-b957-ce37f9a047c0 mcp_calls=4 context_size=1457 time_spent=0.11s stop_reason=curator_error
+2026-10-23 14:12:12 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 3496, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/runnables/base.py", line 6027, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:12:12 [ERROR] [app.fixer_agent]: Fixer agent LLM call failed: Missing Authentication header
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/fixer.py", line 99, in fix
+    llm_response = await self.llm.ainvoke(prompt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 511, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1888, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+        prompt_messages, stop=stop, callbacks=callbacks, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 1846, in agenerate
+    raise exceptions[0]
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_core/language_models/chat_models.py", line 2179, in _agenerate_with_cache
+    result = await self._agenerate(
+             ^^^^^^^^^^^^^^^^^^^^^^
+        messages, stop=stop, run_manager=run_manager, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/langchain_openrouter/chat_models.py", line 590, in _agenerate
+    response = await self.client.chat.send_async(messages=message_dicts, **params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/openrouter/chat.py", line 1836, in send_async
+    raise errors.UnauthorizedResponseError(
+        response_data, http_res, http_res_text
+    )
+openrouter.errors.unauthorizedresponse_error.UnauthorizedResponseError: Missing Authentication header
+2026-10-23 14:13:41 [INFO] [app.main]: PW1 API application shutting down...
+2026-10-23 14:45:49 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 14:45:49 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 14:47:35 [ERROR] [app.main]: Unhandled exception processing POST /evaluation/run-paired: 'ExperimentLogger' object has no attribute 'error'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/evaluation/routes.py", line 110, in run_paired_evaluation
+    result = await eval_service.run_paired_experiment(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 418, in run_paired_experiment
+    return await self._do_run_paired_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 462, in _do_run_paired_experiment
+    baseline_record = await self.run_experiment(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 74, in run_experiment
+    return await self._do_run_experiment(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 246, in _do_run_experiment
+    validation_result = self._validate_semantic_correctness(bug_id, fix_result.fixed_code, lang_enum)
+  File "/Users/pretam/PW1/backend/app/evaluation/service.py", line 568, in _validate_semantic_correctness
+    if clean_bug_id == "B001":
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'clean_bug_id' where it is not associated with a value
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 1780, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 2789, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 1800, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 1279, in handle
+    await app(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/fastapi/routing.py", line 352, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/app/evaluation/routes.py", line 125, in run_paired_evaluation
+    logger.error("Paired evaluation failed: %s", exc, exc_info=True)
+    ^^^^^^^^^^^^
+AttributeError: 'ExperimentLogger' object has no attribute 'error'
+2026-10-23 14:49:26 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 14:49:26 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 14:53:19 [INFO] [app.curator]: curation_summary: execution_id=b3150d67-bb5b-48d5-a68c-1b6655d46ec7 mcp_calls=4 context_size=1457 time_spent=1.34s stop_reason=no_further_context_available
+2026-10-23 14:55:45 [WARNING] [app.curator]: LLM error during curation: AttributeError("'coroutine' object has no attribute 'ainvoke'")
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 359, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:45 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=curator_error
+2026-10-23 14:55:45 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=3 context_size=718 time_spent=0.00s stop_reason=budget_limit_reached
+2026-10-23 14:55:45 [WARNING] [app.curator]: LLM error during curation: AttributeError("'coroutine' object has no attribute 'ainvoke'")
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 359, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:45 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=curator_error
+2026-10-23 14:55:45 [WARNING] [app.curator]: LLM error during curation: AttributeError("'coroutine' object has no attribute 'ainvoke'")
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 359, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:45 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=curator_error
+2026-10-23 14:55:45 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: 'coroutine' object has no attribute 'ainvoke'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:45 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: 'coroutine' object has no attribute 'ainvoke'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:46 [WARNING] [app.curator]: LLM error during curation: AttributeError("'coroutine' object has no attribute 'ainvoke'")
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/curator.py", line 359, in _curate_loop
+    decision: RetrievalDecision = await self.decision_model.ainvoke([
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:46 [INFO] [app.curator]: curation_summary: execution_id=d361d597-2862-4bdc-8bb1-780e7dd883dd mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=curator_error
+2026-10-23 14:55:46 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: 'coroutine' object has no attribute 'ainvoke'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:46 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: 'coroutine' object has no attribute 'ainvoke'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 109, in _diagnose_baseline
+    result = await self.structured_model.ainvoke(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:46 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: 'coroutine' object has no attribute 'ainvoke'
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 240, in _diagnose_dynamic
+    result = await self.structured_model.ainvoke(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'coroutine' object has no attribute 'ainvoke'
+2026-10-23 14:55:46 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-23 14:55:46 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-23 14:55:46 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-23 14:55:46 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-23 14:55:46 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-23 14:55:46 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-23 14:55:54 [INFO] [app.curator]: curation_summary: execution_id=184128be-1680-44b1-a3ab-59d26ddc8cbc mcp_calls=1 context_size=2 time_spent=1.71s stop_reason=no_further_context_available
+2026-10-23 14:55:58 [INFO] [app.curator]: curation_summary: execution_id=03d01b30-e07d-460d-9095-acd1d884ce72 mcp_calls=1 context_size=2 time_spent=0.97s stop_reason=no_further_context_available
+2026-10-23 14:56:01 [WARNING] [app.fix_route]: Fix request trace not found: Execution trace for non-existent-id-12345 not found.
+2026-10-23 15:00:31 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-23 15:00:31 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=3 context_size=718 time_spent=0.00s stop_reason=budget_limit_reached
+2026-10-23 15:00:31 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-23 15:00:31 [WARNING] [app.curator]: LLM rate limit exceeded during curation: Exception('OpenRouter 429')
+2026-10-23 15:00:31 [INFO] [app.curator]: curation_summary: execution_id=exec_123 mcp_calls=4 context_size=912 time_spent=0.00s stop_reason=llm_rate_limit_exceeded
+2026-10-23 15:00:31 [ERROR] [app.debugger_agent]: Baseline diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 118, in _diagnose_baseline
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/pydantic/main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/pydantic/main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-23 15:00:31 [INFO] [app.curator]: curation_summary: execution_id=3bb1795b-a2fc-4106-ba11-491c474e0440 mcp_calls=3 context_size=810 time_spent=0.00s stop_reason=root_cause_identified
+2026-10-23 15:00:31 [ERROR] [app.debugger_agent]: Dynamic diagnosis LLM call failed: "RetrievalDecision" object has no field "execution_id"
+Traceback (most recent call last):
+  File "/Users/pretam/PW1/backend/app/agent/debugger.py", line 249, in _diagnose_dynamic
+    result.execution_id = execution_id
+    ^^^^^^^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/pydantic/main.py", line 1032, in __setattr__
+    elif (setattr_handler := self._setattr_handler(name, value)) is not None:
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/pretam/PW1/backend/venv/lib/python3.14/site-packages/pydantic/main.py", line 1079, in _setattr_handler
+    raise ValueError(f'"{cls.__name__}" object has no field "{name}"')
+ValueError: "RetrievalDecision" object has no field "execution_id"
+2026-10-23 15:00:32 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=1, errors=[]
+2026-10-23 15:00:32 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-23 15:00:32 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-23 15:00:32 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=False, dirs_cleared=0, errors=['Experiments directory resolves outside allowed data directory.']
+2026-10-23 15:00:32 [INFO] [app.evaluation.logger]: M8 experiment clearing executed. success=True, dirs_cleared=0, errors=[]
+2026-10-23 15:00:32 [WARNING] [app.evaluation.routes]: Clear operation rejected: an evaluation experiment is currently running.
+2026-10-23 15:00:40 [INFO] [app.curator]: curation_summary: execution_id=eb36141c-3367-4a18-b81d-477d2c58e307 mcp_calls=1 context_size=2 time_spent=1.19s stop_reason=no_further_context_available
+2026-10-23 15:00:48 [INFO] [app.curator]: curation_summary: execution_id=bf0a03cb-3df5-494c-b69c-b9915151622c mcp_calls=1 context_size=2 time_spent=3.39s stop_reason=no_further_context_available
+2026-10-23 15:00:53 [WARNING] [app.fix_route]: Fix request trace not found: Execution trace for non-existent-id-12345 not found.
+2026-10-23 15:08:33 [INFO] [app.main]: PW1 API application starting up...
+2026-10-23 15:08:33 [INFO] [app.main]: MCP session manager initialized on /mcp
+2026-10-23 15:14:12 [INFO] [app.curator]: curation_summary: execution_id=5d2bd6e6-cc7d-4512-ac30-ffbf2b9c3e8b mcp_calls=4 context_size=1457 time_spent=1.43s stop_reason=no_further_context_available
+2026-10-23 15:19:33 [INFO] [app.curator]: curation_summary: execution_id=c5dab9b9-b377-4b84-bb1c-47971f18de8a mcp_calls=4 context_size=1708 time_spent=1.61s stop_reason=no_further_context_available

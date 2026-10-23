@@ -50,3 +50,7 @@ Thumbs.db
 backend/logs/*.log*
 !backend/logs/.gitkeep
 
+# Nested directories
+PW1/
+
+
