@@ -1,6 +1,6 @@
 FROM eclipse-temurin:17-jdk-alpine
 
-RUN apk add --no-cache python3 py3-pip
+RUN apk add --no-cache python3 py3-pip curl
 
 RUN java -version && javac -version && python3 --version
 
