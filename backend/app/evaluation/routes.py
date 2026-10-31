@@ -133,9 +133,60 @@ async def run_paired_evaluation(request: PairedBenchmarkRunRequest) -> Compariso
     "/experiments",
     response_model=list[ExperimentRecord],
 )
-async def get_recent_experiments(limit: int = Query(default=50, ge=1, le=500)) -> list[ExperimentRecord]:
+async def get_recent_experiments(limit: int = Query(default=100, ge=1, le=500)) -> list[ExperimentRecord]:
     """Retrieve logged experiment records from m8_experiments.csv."""
     return logger.get_experiments(limit=limit)
+
+
+@router.post(
+    "/import",
+    response_model=dict,
+)
+async def import_experiments_dataset(
+    file_path: Optional[str] = Query(default=None, description="Optional path to CSV file to import"),
+) -> dict:
+    """Import experiment records from a CSV file into the master dataset with deduplication."""
+    try:
+        from pathlib import Path
+        backend_root = Path(__file__).resolve().parent.parent.parent
+        workspace_root = backend_root.parent
+
+        if file_path:
+            target_path = Path(file_path)
+            if not target_path.is_absolute():
+                target_path = (workspace_root / target_path).resolve()
+            if not target_path.exists():
+                raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+            return logger.import_csv_file(target_path)
+
+        # Default import of both CSV files if no path specified
+        results = []
+        default_files = [
+            workspace_root / "Python_Complete_results_PW1(1).csv",
+            workspace_root / "java csv pw1 - m8_experiments(1).csv",
+            backend_root / "data" / "Python_Complete_results_PW1(1).csv",
+            backend_root / "data" / "java csv pw1 - m8_experiments(1).csv",
+        ]
+        imported_files = set()
+        for f in default_files:
+            if f.exists() and f.name not in imported_files:
+                res = logger.import_csv_file(f)
+                results.append(res)
+                imported_files.add(f.name)
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No default experiment CSV files found to import.")
+
+        return {
+            "status": "success",
+            "imported_files": results,
+            "total_records": len(logger.get_experiments(limit=500)),
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        app_logger.error("Failed to import experiments CSV: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to import experiments: {str(exc)}")
 
 
 @router.get(

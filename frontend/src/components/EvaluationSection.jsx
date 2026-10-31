@@ -210,7 +210,7 @@ export const EvaluationSection = ({
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const data = await getRecentExperiments(30);
+      const data = await getRecentExperiments(100);
       setRecentExperiments(data);
     } catch (err) {
       console.error('Failed to load experiments history:', err);

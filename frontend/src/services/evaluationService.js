@@ -43,7 +43,7 @@ export async function runPairedEvaluation({ bugId, code, language, stdin }) {
   return response.data;
 }
 
-export async function getRecentExperiments(limit = 20) {
+export async function getRecentExperiments(limit = 100) {
   const response = await apiClient.get(`/evaluation/experiments?limit=${limit}`);
   return response.data;
 }

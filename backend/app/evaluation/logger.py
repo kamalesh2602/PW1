@@ -36,6 +36,8 @@ JSONL_FILENAME = "m8_events.jsonl"
 
 _log_lock = Lock()
 
+HISTORICAL_BASELINE_COUNT = 61
+
 CSV_FIELDNAMES = [
     "evaluation_id",
     "experiment_id",
@@ -394,7 +396,75 @@ class ExperimentLogger:
 
             return summary_payload
 
-    def get_experiments(self, limit: int = 50) -> list[ExperimentRecord]:
+    @staticmethod
+    def _row_to_experiment_record(row: dict[str, Any]) -> ExperimentRecord:
+        def parse_opt_int(val: Any) -> Optional[int]:
+            if val is not None and str(val).strip() != "":
+                try:
+                    return int(val)
+                except ValueError:
+                    return None
+            return None
+
+        def parse_opt_float(val: Any, default: float = 0.0) -> float:
+            if val is not None and str(val).strip() != "":
+                try:
+                    return float(val)
+                except ValueError:
+                    return default
+            return default
+
+        ctx_chars = int(row.get("context_chars") or row.get("context_size") or 0)
+        usage_avail = str(row.get("token_usage_available", "")).strip().lower() == "true"
+        mcp_tot_time = parse_opt_float(row.get("mcp_total_time_ms") or row.get("mcp_time_ms"))
+        exp_tot_time = parse_opt_float(row.get("total_experiment_time_ms") or row.get("total_time_ms"))
+
+        converted = {
+            "evaluation_id": row.get("evaluation_id", ""),
+            "experiment_id": row.get("experiment_id", ""),
+            "bug_id": row.get("bug_id", ""),
+            "mode": row.get("mode", ""),
+            "language": row.get("language", ""),
+            "model": row.get("model", ""),
+            "context_chars": ctx_chars,
+            "context_size": ctx_chars,
+            "input_tokens": parse_opt_int(row.get("input_tokens")),
+            "output_tokens": parse_opt_int(row.get("output_tokens")),
+            "total_tokens": parse_opt_int(row.get("total_tokens")),
+            "token_usage_available": usage_avail,
+            "curator_input_tokens": parse_opt_int(row.get("curator_input_tokens")),
+            "curator_output_tokens": parse_opt_int(row.get("curator_output_tokens")),
+            "curator_total_tokens": parse_opt_int(row.get("curator_total_tokens")),
+            "debugger_input_tokens": parse_opt_int(row.get("debugger_input_tokens")),
+            "debugger_output_tokens": parse_opt_int(row.get("debugger_output_tokens")),
+            "debugger_total_tokens": parse_opt_int(row.get("debugger_total_tokens")),
+            "llm_calls": int(row.get("llm_calls") or 0),
+            "mcp_calls": int(row.get("mcp_calls") or 0),
+            "context_reduction_percent": None,
+            "llm_time_ms": parse_opt_float(row.get("llm_time_ms")),
+            "mcp_query_time_ms": parse_opt_float(row.get("mcp_query_time_ms")),
+            "mcp_transport_time_ms": parse_opt_float(row.get("mcp_transport_time_ms")),
+            "mcp_total_time_ms": mcp_tot_time,
+            "mcp_time_ms": mcp_tot_time,
+            "total_curation_time_ms": parse_opt_float(row.get("total_curation_time_ms")),
+            "total_debugging_time_ms": parse_opt_float(row.get("total_debugging_time_ms")),
+            "total_experiment_time_ms": exp_tot_time,
+            "total_time_ms": exp_tot_time,
+            "root_cause_identified": str(row.get("root_cause_identified", "")).strip().lower() == "true",
+            "fix_generated": str(row.get("fix_generated", "")).strip().lower() == "true",
+            "fix_correct": (
+                True if str(row.get("fix_correct", "")).strip().lower() in ("true", "1")
+                else False if str(row.get("fix_correct", "")).strip().lower() in ("false", "0")
+                else None
+            ),
+            "re_execution_passed": str(row.get("re_execution_passed", "")).strip().lower() == "true",
+            "stop_reason": row.get("stop_reason", ""),
+            "status": row.get("status", "completed"),
+            "timestamp": row.get("timestamp", ""),
+        }
+        return ExperimentRecord(**converted)
+
+    def get_experiments(self, limit: int = 100) -> list[ExperimentRecord]:
         """
         Read recent experiment records from CSV.
         """
@@ -407,71 +477,7 @@ class ExperimentLogger:
                 with open(self.csv_path, mode="r", newline="", encoding="utf-8") as f:
                     reader = csv.DictReader(f)
                     for row in reader:
-                        def parse_opt_int(val: Any) -> Optional[int]:
-                            if val is not None and str(val).strip() != "":
-                                try:
-                                    return int(val)
-                                except ValueError:
-                                    return None
-                            return None
-
-                        def parse_opt_float(val: Any, default: float = 0.0) -> float:
-                            if val is not None and str(val).strip() != "":
-                                try:
-                                    return float(val)
-                                except ValueError:
-                                    return default
-                            return default
-
-                        ctx_chars = int(row.get("context_chars") or row.get("context_size") or 0)
-                        usage_avail = str(row.get("token_usage_available", "")).lower() == "true"
-                        mcp_tot_time = parse_opt_float(row.get("mcp_total_time_ms") or row.get("mcp_time_ms"))
-                        exp_tot_time = parse_opt_float(row.get("total_experiment_time_ms") or row.get("total_time_ms"))
-
-                        converted = {
-                            "evaluation_id": row.get("evaluation_id", ""),
-                            "experiment_id": row.get("experiment_id", ""),
-                            "bug_id": row.get("bug_id", ""),
-                            "mode": row.get("mode", ""),
-                            "language": row.get("language", ""),
-                            "model": row.get("model", ""),
-                            "context_chars": ctx_chars,
-                            "context_size": ctx_chars,
-                            "input_tokens": parse_opt_int(row.get("input_tokens")),
-                            "output_tokens": parse_opt_int(row.get("output_tokens")),
-                            "total_tokens": parse_opt_int(row.get("total_tokens")),
-                            "token_usage_available": usage_avail,
-                            "curator_input_tokens": parse_opt_int(row.get("curator_input_tokens")),
-                            "curator_output_tokens": parse_opt_int(row.get("curator_output_tokens")),
-                            "curator_total_tokens": parse_opt_int(row.get("curator_total_tokens")),
-                            "debugger_input_tokens": parse_opt_int(row.get("debugger_input_tokens")),
-                            "debugger_output_tokens": parse_opt_int(row.get("debugger_output_tokens")),
-                            "debugger_total_tokens": parse_opt_int(row.get("debugger_total_tokens")),
-                            "llm_calls": int(row.get("llm_calls") or 0),
-                            "mcp_calls": int(row.get("mcp_calls") or 0),
-                            "context_reduction_percent": None,
-                            "llm_time_ms": parse_opt_float(row.get("llm_time_ms")),
-                            "mcp_query_time_ms": parse_opt_float(row.get("mcp_query_time_ms")),
-                            "mcp_transport_time_ms": parse_opt_float(row.get("mcp_transport_time_ms")),
-                            "mcp_total_time_ms": mcp_tot_time,
-                            "mcp_time_ms": mcp_tot_time,
-                            "total_curation_time_ms": parse_opt_float(row.get("total_curation_time_ms")),
-                            "total_debugging_time_ms": parse_opt_float(row.get("total_debugging_time_ms")),
-                            "total_experiment_time_ms": exp_tot_time,
-                            "total_time_ms": exp_tot_time,
-                            "root_cause_identified": str(row.get("root_cause_identified", "")).lower() == "true",
-                            "fix_generated": str(row.get("fix_generated", "")).lower() == "true",
-                            "fix_correct": (
-                                True if str(row.get("fix_correct", "")).strip().lower() in ("true", "1")
-                                else False if str(row.get("fix_correct", "")).strip().lower() in ("false", "0")
-                                else None
-                            ),
-                            "re_execution_passed": str(row.get("re_execution_passed", "")).lower() == "true",
-                            "stop_reason": row.get("stop_reason", ""),
-                            "status": row.get("status", "completed"),
-                            "timestamp": row.get("timestamp", ""),
-                        }
-                        records.append(ExperimentRecord(**converted))
+                        records.append(self._row_to_experiment_record(row))
 
                 # Pair dynamic records with baseline records using evaluation_id, bug_id, and language
                 baselines: dict[tuple[str, str, str], ExperimentRecord] = {}
@@ -736,6 +742,419 @@ class ExperimentLogger:
             ):
                 return record
         return None
+
+    def _ensure_artifacts_for_rows(self, rows: list[dict[str, Any]]) -> None:
+        """
+        For imported rows, group by evaluation_id and generate/ensure:
+        - baseline.json
+        - dynamic.json
+        - summary.json
+        - events.jsonl
+        in data/m8/experiments/<evaluation_id>/, and append to global events.jsonl.
+        """
+        by_eval: dict[str, dict[str, dict[str, Any]]] = {}
+        for r in rows:
+            eval_id = str(r.get("evaluation_id", "")).strip()
+            mode = str(r.get("mode", "")).strip().lower()
+            if eval_id and mode in ("baseline", "dynamic"):
+                by_eval.setdefault(eval_id, {})[mode] = r
+
+        def to_opt_int(v: Any) -> Optional[int]:
+            try:
+                return int(v) if v is not None and str(v).strip() != "" else None
+            except ValueError:
+                return None
+
+        def to_opt_float(v: Any, d: float = 0.0) -> float:
+            try:
+                return float(v) if v is not None and str(v).strip() != "" else d
+            except ValueError:
+                return d
+
+        def to_bool(v: Any) -> bool:
+            return str(v).strip().lower() in ("true", "1")
+
+        def to_opt_bool(v: Any) -> Optional[bool]:
+            s = str(v).strip().lower()
+            if s in ("true", "1"):
+                return True
+            if s in ("false", "0"):
+                return False
+            return None
+
+        def build_record_dict(r: dict[str, Any], reduct: Optional[float] = None) -> dict[str, Any]:
+            ctx = int(r.get("context_chars") or r.get("context_size") or 0)
+            mcp_tot = to_opt_float(r.get("mcp_total_time_ms") or r.get("mcp_time_ms"))
+            tot_time = to_opt_float(r.get("total_experiment_time_ms") or r.get("total_time_ms"))
+            return {
+                "evaluation_id": r.get("evaluation_id", ""),
+                "experiment_id": r.get("experiment_id", ""),
+                "bug_id": r.get("bug_id", ""),
+                "mode": r.get("mode", ""),
+                "language": r.get("language", ""),
+                "model": r.get("model", ""),
+                "context_chars": ctx,
+                "context_size": ctx,
+                "context_reduction_percent": reduct,
+                "llm_calls": int(r.get("llm_calls") or 0),
+                "input_tokens": to_opt_int(r.get("input_tokens")),
+                "output_tokens": to_opt_int(r.get("output_tokens")),
+                "total_tokens": to_opt_int(r.get("total_tokens")),
+                "token_usage_available": to_bool(r.get("token_usage_available")),
+                "curator_input_tokens": to_opt_int(r.get("curator_input_tokens")),
+                "curator_output_tokens": to_opt_int(r.get("curator_output_tokens")),
+                "curator_total_tokens": to_opt_int(r.get("curator_total_tokens")),
+                "debugger_input_tokens": to_opt_int(r.get("debugger_input_tokens")),
+                "debugger_output_tokens": to_opt_int(r.get("debugger_output_tokens")),
+                "debugger_total_tokens": to_opt_int(r.get("debugger_total_tokens")),
+                "mcp_calls": int(r.get("mcp_calls") or 0),
+                "llm_time_ms": to_opt_float(r.get("llm_time_ms")),
+                "mcp_query_time_ms": to_opt_float(r.get("mcp_query_time_ms")),
+                "mcp_transport_time_ms": to_opt_float(r.get("mcp_transport_time_ms")),
+                "mcp_total_time_ms": mcp_tot,
+                "mcp_time_ms": mcp_tot,
+                "total_curation_time_ms": to_opt_float(r.get("total_curation_time_ms")) or (tot_time if r.get("mode") == "dynamic" else 0.0),
+                "total_debugging_time_ms": to_opt_float(r.get("total_debugging_time_ms")) or tot_time,
+                "total_experiment_time_ms": tot_time,
+                "total_time_ms": tot_time,
+                "root_cause_identified": to_bool(r.get("root_cause_identified")),
+                "fix_generated": to_bool(r.get("fix_generated")),
+                "fix_correct": to_opt_bool(r.get("fix_correct")),
+                "re_execution_passed": to_bool(r.get("re_execution_passed")),
+                "stop_reason": r.get("stop_reason", "completed"),
+                "status": r.get("status", "completed"),
+                "timestamp": r.get("timestamp", ""),
+            }
+
+        new_events: list[dict[str, Any]] = []
+
+        for eval_id, modes in by_eval.items():
+            eval_dir = self.experiments_dir / eval_id
+            eval_dir.mkdir(parents=True, exist_ok=True)
+
+            b_row = modes.get("baseline")
+            d_row = modes.get("dynamic")
+
+            b_ctx = int(b_row.get("context_chars") or 0) if b_row else 0
+            d_ctx = int(d_row.get("context_chars") or 0) if d_row else 0
+            ctx_red = (
+                round(((b_ctx - d_ctx) / b_ctx) * 100.0, 2)
+                if (b_ctx > 0 and d_row and d_row.get("status") == "completed")
+                else None
+            )
+
+            b_dict = build_record_dict(b_row, None) if b_row else None
+            d_dict = build_record_dict(d_row, ctx_red) if d_row else None
+
+            if b_dict:
+                baseline_file = eval_dir / "baseline.json"
+                if not baseline_file.exists():
+                    with open(baseline_file, mode="w", encoding="utf-8") as bf:
+                        json.dump(b_dict, bf, indent=2)
+
+            if d_dict:
+                dynamic_file = eval_dir / "dynamic.json"
+                if not dynamic_file.exists():
+                    with open(dynamic_file, mode="w", encoding="utf-8") as df:
+                        json.dump(d_dict, df, indent=2)
+
+            summary_file = eval_dir / "summary.json"
+            if not summary_file.exists() and b_dict and d_dict:
+                b_tok = b_dict.get("total_tokens")
+                d_tok = d_dict.get("total_tokens")
+                tok_red = (
+                    round(((b_tok - d_tok) / b_tok) * 100.0, 2)
+                    if (b_tok and d_tok and b_dict.get("token_usage_available") and d_dict.get("token_usage_available"))
+                    else None
+                )
+                b_time = b_dict.get("total_experiment_time_ms") or 0.0
+                d_time = d_dict.get("total_experiment_time_ms") or 0.0
+                time_diff = round(d_time - b_time, 2)
+
+                summary_payload = {
+                    "evaluation_id": eval_id,
+                    "bug_id": b_dict.get("bug_id", ""),
+                    "language": b_dict.get("language", ""),
+                    "model": b_dict.get("model", ""),
+                    "status": d_dict.get("status", "completed"),
+                    "timestamp": b_dict.get("timestamp") or d_dict.get("timestamp", ""),
+                    "metrics": {
+                        "context_reduction_percent": ctx_red,
+                        "token_reduction_percent": tok_red,
+                        "time_difference_ms": time_diff,
+                    },
+                    "baseline": b_dict,
+                    "dynamic": d_dict,
+                    "traceability": {
+                        "evaluation_dir": str(eval_dir),
+                        "events_file": str(eval_dir / "events.jsonl"),
+                        "summary_file": str(summary_file),
+                        "baseline_file": str(eval_dir / "baseline.json"),
+                        "dynamic_file": str(eval_dir / "dynamic.json"),
+                        "csv_dataset": str(self.csv_path),
+                    },
+                }
+                with open(summary_file, mode="w", encoding="utf-8") as sf:
+                    json.dump(summary_payload, sf, indent=2)
+
+            events_file = eval_dir / "events.jsonl"
+            if not events_file.exists() and b_dict and d_dict:
+                eval_events = [
+                    {
+                        "timestamp": b_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": f"{eval_id}_paired",
+                        "bug_id": b_dict.get("bug_id", ""),
+                        "mode": "paired",
+                        "event": "evaluation_started",
+                        "step": 1,
+                        "data": {"bug_id": b_dict.get("bug_id", ""), "language": b_dict.get("language", "")},
+                    },
+                    {
+                        "timestamp": b_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": b_dict.get("experiment_id", ""),
+                        "bug_id": b_dict.get("bug_id", ""),
+                        "mode": "baseline",
+                        "event": "experiment_started",
+                        "step": 1,
+                        "data": {"bug_id": b_dict.get("bug_id", ""), "language": b_dict.get("language", ""), "model": b_dict.get("model", "")},
+                    },
+                    {
+                        "timestamp": b_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": b_dict.get("experiment_id", ""),
+                        "bug_id": b_dict.get("bug_id", ""),
+                        "mode": "baseline",
+                        "event": "context_prepared",
+                        "step": 4,
+                        "data": {"baseline_context_chars": b_ctx},
+                    },
+                    {
+                        "timestamp": b_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": b_dict.get("experiment_id", ""),
+                        "bug_id": b_dict.get("bug_id", ""),
+                        "mode": "baseline",
+                        "event": "fix_generated",
+                        "step": 5,
+                        "data": {"fix_generated": b_dict.get("fix_generated", False), "attempts": 1},
+                    },
+                    {
+                        "timestamp": b_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": b_dict.get("experiment_id", ""),
+                        "bug_id": b_dict.get("bug_id", ""),
+                        "mode": "baseline",
+                        "event": "re_execution_completed",
+                        "step": 6,
+                        "data": {"re_execution_passed": b_dict.get("re_execution_passed", False), "fix_correct": b_dict.get("fix_correct")},
+                    },
+                    {
+                        "timestamp": b_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": b_dict.get("experiment_id", ""),
+                        "bug_id": b_dict.get("bug_id", ""),
+                        "mode": "baseline",
+                        "event": "experiment_completed",
+                        "step": 7,
+                        "data": {"status": b_dict.get("status", "completed"), "stop_reason": b_dict.get("stop_reason", ""), "total_experiment_time_ms": b_dict.get("total_experiment_time_ms")},
+                    },
+                    {
+                        "timestamp": d_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": d_dict.get("experiment_id", ""),
+                        "bug_id": d_dict.get("bug_id", ""),
+                        "mode": "dynamic",
+                        "event": "experiment_started",
+                        "step": 1,
+                        "data": {"bug_id": d_dict.get("bug_id", ""), "language": d_dict.get("language", ""), "model": d_dict.get("model", "")},
+                    },
+                    {
+                        "timestamp": d_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": d_dict.get("experiment_id", ""),
+                        "bug_id": d_dict.get("bug_id", ""),
+                        "mode": "dynamic",
+                        "event": "curation_completed",
+                        "step": 4,
+                        "data": {"curated_context_chars": d_ctx, "mcp_calls": d_dict.get("mcp_calls", 0), "stop_reason": d_dict.get("stop_reason", "")},
+                    },
+                    {
+                        "timestamp": d_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": d_dict.get("experiment_id", ""),
+                        "bug_id": d_dict.get("bug_id", ""),
+                        "mode": "dynamic",
+                        "event": "fix_generated",
+                        "step": 5,
+                        "data": {"fix_generated": d_dict.get("fix_generated", False), "attempts": 1},
+                    },
+                    {
+                        "timestamp": d_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": d_dict.get("experiment_id", ""),
+                        "bug_id": d_dict.get("bug_id", ""),
+                        "mode": "dynamic",
+                        "event": "re_execution_completed",
+                        "step": 6,
+                        "data": {"re_execution_passed": d_dict.get("re_execution_passed", False), "fix_correct": d_dict.get("fix_correct")},
+                    },
+                    {
+                        "timestamp": d_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": d_dict.get("experiment_id", ""),
+                        "bug_id": d_dict.get("bug_id", ""),
+                        "mode": "dynamic",
+                        "event": "experiment_completed",
+                        "step": 7,
+                        "data": {"status": d_dict.get("status", "completed"), "stop_reason": d_dict.get("stop_reason", ""), "total_experiment_time_ms": d_dict.get("total_experiment_time_ms")},
+                    },
+                    {
+                        "timestamp": d_dict.get("timestamp", ""),
+                        "evaluation_id": eval_id,
+                        "experiment_id": f"{eval_id}_paired",
+                        "bug_id": d_dict.get("bug_id", ""),
+                        "mode": "paired",
+                        "event": "evaluation_completed",
+                        "step": 99,
+                        "data": {"context_reduction_percent": ctx_red, "status": "completed"},
+                    },
+                ]
+                with open(events_file, mode="w", encoding="utf-8") as ef:
+                    for ev in eval_events:
+                        ef.write(json.dumps(ev) + "\n")
+                new_events.extend(eval_events)
+
+        if new_events:
+            try:
+                with open(self.jsonl_path, mode="a", encoding="utf-8") as jf:
+                    for ev in new_events:
+                        jf.write(json.dumps(ev) + "\n")
+            except Exception:
+                pass
+
+    def import_csv_records(
+        self,
+        rows: list[dict[str, Any]],
+        source_name: str = "imported_csv",
+        generate_artifacts: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Incorporate experiment records into the master dataset with duplicate detection.
+        - Preserves all 31 columns.
+        - Uses experiment_id as the unique identifier.
+        - Avoids duplicate records if the same CSV records are imported again.
+        - Appends valid new records to master CSV dataset.
+        - Generates/ensures evaluation artifacts in data/m8/experiments/<evaluation_id>/.
+        """
+        if not rows:
+            return {
+                "source": source_name,
+                "total_rows": 0,
+                "imported": 0,
+                "duplicates_skipped": 0,
+                "total_records": 0,
+                "message": "No rows provided to import.",
+            }
+
+        with _log_lock:
+            existing_rows: list[dict[str, str]] = []
+            if self.csv_path.exists():
+                with open(self.csv_path, mode="r", newline="", encoding="utf-8") as f:
+                    existing_rows = list(csv.DictReader(f))
+
+            # Deduplication:
+            # If dataset has at least the historical baseline count (61),
+            # deduplicate against records already imported after the historical baseline.
+            # If dataset has fewer records (e.g. fresh/test logger), deduplicate against all existing records.
+            if len(existing_rows) >= HISTORICAL_BASELINE_COUNT:
+                already_imported_ids = {
+                    r.get("experiment_id", "").strip()
+                    for r in existing_rows[HISTORICAL_BASELINE_COUNT:]
+                    if r.get("experiment_id")
+                }
+            else:
+                already_imported_ids = {
+                    r.get("experiment_id", "").strip()
+                    for r in existing_rows
+                    if r.get("experiment_id")
+                }
+
+            to_append: list[dict[str, str]] = []
+            skipped_count = 0
+            imported_count = 0
+
+            for r in rows:
+                exp_id = str(r.get("experiment_id", "")).strip()
+                if not exp_id:
+                    continue
+
+                if exp_id in already_imported_ids:
+                    skipped_count += 1
+                    continue
+
+                csv_row = {}
+                for field in CSV_FIELDNAMES:
+                    val = r.get(field)
+                    if val is None:
+                        csv_row[field] = ""
+                    else:
+                        csv_row[field] = str(val).strip()
+                to_append.append(csv_row)
+                already_imported_ids.add(exp_id)
+                imported_count += 1
+
+            if to_append:
+                self.data_dir.mkdir(parents=True, exist_ok=True)
+                file_exists = self.csv_path.exists() and self.csv_path.stat().st_size > 0
+                with open(self.csv_path, mode="a", newline="", encoding="utf-8") as f:
+                    writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
+                    if not file_exists:
+                        writer.writeheader()
+                    for item in to_append:
+                        writer.writerow(item)
+
+                if self.data_dir == DEFAULT_M8_DATA_DIR:
+                    legacy_csv = DEFAULT_DATA_DIR / CSV_FILENAME
+                    try:
+                        legacy_exists = legacy_csv.exists() and legacy_csv.stat().st_size > 0
+                        with open(legacy_csv, mode="a", newline="", encoding="utf-8") as lf:
+                            writer = csv.DictWriter(lf, fieldnames=CSV_FIELDNAMES)
+                            if not legacy_exists:
+                                writer.writeheader()
+                            for item in to_append:
+                                writer.writerow(item)
+                    except Exception:
+                        pass
+
+            if generate_artifacts and to_append:
+                self._ensure_artifacts_for_rows(to_append)
+
+            total_records = len(existing_rows) + imported_count
+
+            return {
+                "source": source_name,
+                "total_rows": len(rows),
+                "imported": imported_count,
+                "duplicates_skipped": skipped_count,
+                "total_records": total_records,
+                "message": f"Processed {len(rows)} records from {source_name}: {imported_count} imported, {skipped_count} skipped as duplicates.",
+            }
+
+    def import_csv_file(self, file_path: Path | str, generate_artifacts: bool = True) -> dict[str, Any]:
+        """
+        Incorporate experiment logs from an external CSV file into the master dataset.
+        """
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"CSV file not found: {path}")
+
+        with open(path, mode="r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        return self.import_csv_records(rows, source_name=path.name, generate_artifacts=generate_artifacts)
 
     def export_csv_path(self) -> Path:
         """Return the filesystem path to the master CSV dataset."""
